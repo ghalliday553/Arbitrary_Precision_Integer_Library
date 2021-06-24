@@ -14,9 +14,16 @@ public:
 	arithmetic();
 	arithmetic(const char *str);
 	arithmetic(const arithmetic &in);
+	arithmetic& operator=(const arithmetic &in);
 	~arithmetic();
 
-	arithmetic& operator+=(const arithmetic &in);
+	arithmetic& operator+=(arithmetic in);
+	arithmetic& operator-=(arithmetic in);
+	arithmetic& operator*=(arithmetic in);
+
+	arithmetic& operator<<=(size_t shiftAmount);
+
+	void shiftLeft();
 	size_t getSize() const;
 
 	friend std::ostream& operator<<(std::ostream& outStream, const arithmetic &in);

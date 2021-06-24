@@ -94,6 +94,7 @@ static bool stringToBinary(const char *inputBuf, size_t inputBufSize, unsigned c
 	delete[] stringTempBuf;
 	return true;
 }
+
 arithmetic::arithmetic() {
 	buf = new unsigned char[1]();
 	size = 1;
@@ -113,6 +114,15 @@ arithmetic::arithmetic(const char *str){
 	stringToBinary(str, strlen(str)+1, buf, requiredBufSize);
 }
 
+arithmetic& arithmetic::operator=(const arithmetic &in){
+	delete[] buf;
+	buf = new unsigned char[in.size]();
+	size = in.size;
+	memcpy(buf, in.buf, size);
+
+	return *this;
+}
+
 arithmetic::~arithmetic(){
 	if (buf != nullptr) {
 		delete[] buf;
@@ -120,45 +130,42 @@ arithmetic::~arithmetic(){
 	buf = nullptr;
 }
 
-arithmetic& arithmetic::operator+=(const arithmetic &in) {
-
-	arithmetic temp(in);
-
+arithmetic& arithmetic::operator+=(arithmetic in) {
 	if (in.size < size) {
 		if (buf[0] & 0x80) {
 			grow(size+1);
-			temp.grow(size+1);
+			in.grow(size);
 		} else {
-			temp.grow(size);
+			in.grow(size);
 		}
-	} else if (temp.size > size) {
-		if (temp.buf[0] & 0x80) {
-			grow(temp.size+1);
-			temp.grow(temp.size+1);
+	} else if (in.size > size) {
+		if (in.buf[0] & 0x80) {
+			grow(in.size+1);
+			in.grow(in.size+1);
 		} else {
-			grow(temp.size);
+			grow(in.size);
 		}
 	} else {
-		if (buf[0] & 0x80) {
+		if (buf[0] & 0x80 || in.buf[0] & 0x80) {
 			grow(size+1);
-			temp.grow(size+1);
+			in.grow(size);
 		}
 	}
 
 	int byteInd = size - 1;
 	bool carry = false;
-	unsigned int binaryBitMask = 1;
+	unsigned short binaryBitMask = 1;
 
 	while (byteInd >= 0) {
 		while (binaryBitMask <= 128) {
-			if ((binaryBitMask & buf[byteInd]) && (binaryBitMask & temp.buf[byteInd])) {
+			if ((binaryBitMask & buf[byteInd]) && (binaryBitMask & in.buf[byteInd])) {
 				if(carry) {
 					buf[byteInd] |= binaryBitMask;
 				} else {
 					buf[byteInd] &= ~binaryBitMask;
 				}
 				carry = true;
-			} else if ((binaryBitMask & buf[byteInd]) || (binaryBitMask & temp.buf[byteInd])) {
+			} else if ((binaryBitMask & buf[byteInd]) || (binaryBitMask & in.buf[byteInd])) {
 				if (carry) {
 					carry = true;
 					buf[byteInd] &= ~binaryBitMask;
@@ -179,6 +186,122 @@ arithmetic& arithmetic::operator+=(const arithmetic &in) {
 		}
 		binaryBitMask = 1;
 		--byteInd;
+	}
+
+	return *this;
+}
+
+arithmetic& arithmetic::operator-=(arithmetic in) {
+	if (in.size < size) {
+		in.grow(size);
+	} else if (in.size > size) {
+		grow(in.size);
+	}
+
+	int byteInd = size - 1;
+	bool borrow = false;
+	unsigned short binaryBitMask = 1;
+
+	while (byteInd >= 0) {
+		while (binaryBitMask <= 128) {
+			if ((binaryBitMask & buf[byteInd]) >= 1 && (binaryBitMask & in.buf[byteInd]) >= 1) {
+				if(borrow) {
+					buf[byteInd] |= binaryBitMask;
+				} else {
+					buf[byteInd] &= ~binaryBitMask;
+				}
+			} else if ((binaryBitMask & buf[byteInd]) >= 1 && (binaryBitMask & in.buf[byteInd]) == 0) {
+				if (borrow) {
+					buf[byteInd] &= ~binaryBitMask;
+					borrow = false;
+				} else {
+					buf[byteInd] |= binaryBitMask;
+				}
+			} else if ((binaryBitMask & buf[byteInd]) == 0 && (binaryBitMask & in.buf[byteInd]) >= 1) {
+				if (!borrow) {
+					buf[byteInd] |= binaryBitMask;
+				} else {
+					buf[byteInd] &= ~binaryBitMask;
+				}
+				borrow = true;
+			} else {
+				if (borrow) {
+					buf[byteInd] |= binaryBitMask;
+				} else {
+					buf[byteInd] &= ~binaryBitMask;
+				}
+			}
+
+			binaryBitMask <<= 1;
+		}
+		binaryBitMask = 1;
+		--byteInd;
+	}
+	return *this;
+}
+
+void arithmetic::shiftLeft() {
+	size_t prevSize = size;
+	if (buf[0] & 0x80) {
+		grow(size+1);
+		buf[0] |= 1;
+	}
+
+	int byteInd = size - prevSize;
+	while(byteInd < size-1) {
+		buf[byteInd] <<= 1;
+		buf[byteInd] |= (buf[byteInd+1] >> 7);
+		++byteInd;
+	}
+	buf[size-1]<<=1;
+}
+
+
+arithmetic& arithmetic::operator<<=(size_t shiftAmount) {
+	for(int i = 0; i < shiftAmount; ++i) {
+		shiftLeft();
+	}
+	return *this;
+}
+
+arithmetic& arithmetic::operator*=(arithmetic in) {
+	if (in.size < size) {
+		in.grow(size);
+	} else if (in.size > size) {
+		grow(in.size);
+	}
+
+	arithmetic result;
+	int byteInd = size - 1;
+	bool borrow = false;
+	unsigned short bitMask = 1;
+	int bitOffset = 0;
+
+	bool zeroFlag = true;
+
+	while (byteInd >= 0) {
+		while (bitMask <= 128) {
+			if (in.buf[byteInd] & bitMask) {
+				arithmetic temp(*this);
+				temp <<= bitOffset;
+				result += temp;
+				if (zeroFlag) {
+					zeroFlag = false;
+				}
+			}
+
+			++bitOffset;
+			bitMask <<= 1;
+		}
+
+		bitMask = 1;
+		--byteInd;
+	}
+
+	if (zeroFlag) {
+		*this = arithmetic();
+	} else {
+		*this = result;
 	}
 
 	return *this;
