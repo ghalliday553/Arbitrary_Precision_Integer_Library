@@ -48,7 +48,7 @@ static bool stringToBinary(const char *inputBuf, size_t inputBufSize, unsigned c
 	std::queue<unsigned short> outputQueue;
 	unsigned int binaryBitMask = 1;
 	unsigned char currentByte = 0x00;
-	unsigned int byteInd = outputBufSize-1;
+	size_t byteInd = outputBufSize-1;
 	int counter = 0;
 	int len;
 
@@ -95,7 +95,7 @@ static bool stringToBinary(const char *inputBuf, size_t inputBufSize, unsigned c
 	return true;
 }
 
-arithmetic& add(arithmetic &operand1, arithmetic &operand2) {
+arithmetic add(arithmetic operand1, arithmetic operand2) {
 	if (operand2.size < operand1.size) {
 		if (operand1.buf[0] & 0x80) {
 			operand1.grow(operand1.size+1);
@@ -117,11 +117,11 @@ arithmetic& add(arithmetic &operand1, arithmetic &operand2) {
 		}
 	}
 
-	int byteInd = operand1.size - 1;
+	size_t byteInd = operand1.getSize() - 1;
 	bool carry = false;
 	unsigned short binaryBitMask = 1;
 
-	while (byteInd >= 0) {
+	while (1) {
 		while (binaryBitMask <= 128) {
 			if ((binaryBitMask & operand1.buf[byteInd]) && (binaryBitMask & operand2.buf[byteInd])) {
 				if(carry) {
@@ -150,24 +150,27 @@ arithmetic& add(arithmetic &operand1, arithmetic &operand2) {
 			binaryBitMask <<= 1;
 		}
 		binaryBitMask = 1;
-		--byteInd;
+
+		if(byteInd == 0) {
+			break;
+		} else {
+			--byteInd;
+		}
 	}
 
 	return operand1;
 }
 
-arithmetic& sub(arithmetic &operand1, arithmetic &operand2) {
+arithmetic sub(arithmetic operand1, arithmetic operand2) {
 	if (operand2.size < operand1.size) {
 		operand2.grow(operand1.size);
-	} else if (operand2.size > operand1.size) {
-		operand1.grow(operand2.size);
 	}
 
-	int byteInd = operand1.size - 1;
+	size_t byteInd = operand1.size - 1;
 	bool borrow = false;
 	unsigned short binaryBitMask = 1;
 
-	while (byteInd >= 0) {
+	while (1) {
 		while (binaryBitMask <= 128) {
 			if ((binaryBitMask & operand1.buf[byteInd]) >= 1 && (binaryBitMask & operand2.buf[byteInd]) >= 1) {
 				if(borrow) {
@@ -200,12 +203,17 @@ arithmetic& sub(arithmetic &operand1, arithmetic &operand2) {
 			binaryBitMask <<= 1;
 		}
 		binaryBitMask = 1;
-		--byteInd;
+		if(byteInd == 0) {
+			break;
+		} else {
+			--byteInd;
+		}
 	}
+
 	return operand1;
 }
 
-arithmetic& mult(arithmetic &operand1, arithmetic &operand2) {
+arithmetic mult(arithmetic operand1, arithmetic operand2) {
 	if (operand2.size < operand1.size) {
 		operand2.grow(operand1.size);
 	} else if (operand2.size > operand1.size) {
@@ -213,14 +221,14 @@ arithmetic& mult(arithmetic &operand1, arithmetic &operand2) {
 	}
 
 	arithmetic result;
-	int byteInd = operand1.size - 1;
+	size_t byteInd = operand1.size - 1;
 	bool borrow = false;
 	unsigned short bitMask = 1;
 	int bitOffset = 0;
 
 	bool zeroFlag = true;
 
-	while (byteInd >= 0) {
+	while (1) {
 		while (bitMask <= 128) {
 			if (operand2.buf[byteInd] & bitMask) {
 				arithmetic temp(operand1);
@@ -236,7 +244,11 @@ arithmetic& mult(arithmetic &operand1, arithmetic &operand2) {
 		}
 
 		bitMask = 1;
-		--byteInd;
+		if(byteInd == 0) {
+			break;
+		} else {
+			--byteInd;
+		}
 	}
 
 	if (zeroFlag) {
@@ -248,7 +260,11 @@ arithmetic& mult(arithmetic &operand1, arithmetic &operand2) {
 	return operand1;
 }
 
-arithmetic& div(arithmetic &operand1, arithmetic &operand2) {
+arithmetic div(arithmetic operand1, arithmetic operand2) {
+	if(!operand2) {
+		return arithmetic();
+	}
+
 	if (operand2.size < operand1.size) {
 		operand2.grow(operand1.size);
 	} else if (operand2.size > operand1.size) {
@@ -260,7 +276,7 @@ arithmetic& div(arithmetic &operand1, arithmetic &operand2) {
 	temp.grow(operand1.size);
 	res.grow(operand1.size);
 
-	unsigned short byteInd = 0;
+	size_t byteInd = 0;
 	unsigned short bitInd = 0;
 	unsigned short bitMask = 128;
 
@@ -276,7 +292,10 @@ arithmetic& div(arithmetic &operand1, arithmetic &operand2) {
 
 		if (operand2 <= temp) {
 			res.buf[byteInd] |= (bitMask);
-			operand1 -= (operand2 << ((operand1.size-(byteInd+1))*8 + 7-bitInd));
+
+			size_t numberOfShifts = ((operand1.size-(byteInd+1))*8 + 7-bitInd);
+		
+			operand1 = sub(operand1, (operand2 << numberOfShifts));
 			temp = arithmetic();
 		}
 
@@ -287,8 +306,7 @@ arithmetic& div(arithmetic &operand1, arithmetic &operand2) {
 		}
 	}
 
-	operand1 = res;
-	return operand1;
+	return res;
 }
 
 void shiftLeft(arithmetic &in) {
@@ -298,7 +316,7 @@ void shiftLeft(arithmetic &in) {
 		in.buf[0] |= 1;
 	}
 
-	int byteInd = in.size - prevSize;
+	size_t byteInd = in.size - prevSize;
 	while(byteInd < in.size-1) {
 		in.buf[byteInd] <<= 1;
 		in.buf[byteInd] |= (in.buf[byteInd+1] >> 7);
@@ -307,10 +325,11 @@ void shiftLeft(arithmetic &in) {
 	in.buf[in.size-1]<<=1;
 }
 
-void shiftRight(arithmetic &in) {
-	unsigned int byteInd = 0;
+bool shiftRight(arithmetic &in) {
+	size_t byteInd = 0;
 	unsigned int newTemp = 0;
 	unsigned int prevTemp = 0;
+	bool remainder = in.buf[in.getSize()-1] & 1;
 
 	while(byteInd < in.size) {
 		prevTemp = newTemp;
@@ -320,6 +339,8 @@ void shiftRight(arithmetic &in) {
 
 		++byteInd;
 	}
+
+	return remainder;
 }
 
 int compare(arithmetic operand1, arithmetic operand2) {
@@ -330,47 +351,87 @@ int compare(arithmetic operand1, arithmetic operand2) {
 	}
 
 	unsigned int bitMask = 128;
-	int byteInd = 0;
+	size_t byteInd = 0;
+	bool operand1IsGreater = false;
+	bool operand2IsGreater = false;
 
 	while(byteInd < operand1.size) {
 		while (bitMask >= 1) {
 			if ((operand1.buf[byteInd] & bitMask) && !(operand2.buf[byteInd] & bitMask)) {
-				return 1;
+				operand1IsGreater = true;
+				break;
 			} else if ((operand2.buf[byteInd] & bitMask) && !(operand1.buf[byteInd] & bitMask)) {
-				return -1;
+				operand2IsGreater = true;
+				break;
 			}
 			bitMask >>= 1;
 		}
 
+		if (operand2IsGreater || operand1IsGreater) {
+			break;
+		}
+
 		bitMask = 128;
 		++byteInd;
+	}
+
+	if (operand1IsGreater) {
+		if (operand1.sign()) {
+			return 1;
+		} else {
+			return -1;
+		}
+	} else if(operand2IsGreater) {
+		if (operand2.sign()) {
+			return -1;
+		} else {
+			return 1;
+		}
+	}
+	else {
+		if(operand1.sign() == operand2.sign()){
+			return 0;
+		} else {
+			return operand1.sign()? 1 : -1;
+		}
 	}
 	return 0;
 }
 
 arithmetic::arithmetic() {
 	buf = new unsigned char[1]();
+	negative = false;
 	size = 1;
 }
 
 arithmetic::arithmetic(const arithmetic &in) {
 	size = in.size;
 	buf = new unsigned char[size]();
+	negative = in.negative;
 	memcpy(buf, in.buf, size);
 }
 
-arithmetic::arithmetic(const char *str){
-	size_t requiredBufSize = (floor(strlen(str)*log2(10))+1)/8.0 + 1;
+arithmetic::arithmetic(std::string str){
+	if (str.front() == '-') {
+		negative = true;
+		str.erase(0,1);
+	} else {
+		negative = false;
+	}
+
+	size_t requiredBufSize = (floor(str.length()*log2(10))+1)/8.0 + 1;
 
 	buf = new unsigned char[requiredBufSize]();
 	size = requiredBufSize;
-	stringToBinary(str, strlen(str)+1, buf, requiredBufSize);
+	stringToBinary(str.c_str(), str.length()+1, buf, requiredBufSize);
+	shrink();
 }
 
 arithmetic& arithmetic::operator=(const arithmetic &in){
 	delete[] buf;
 	buf = new unsigned char[in.size]();
 	size = in.size;
+	negative = in.negative;
 	memcpy(buf, in.buf, size);
 
 	return *this;
@@ -384,53 +445,143 @@ arithmetic::~arithmetic(){
 }
 
 arithmetic& arithmetic::operator+=(const arithmetic &in) {
-	arithmetic temp = in;
-	return add(*this, temp);
+	if (this->sign() != in.sign()){
+		if (this->abs() < in) {
+			*this = sub(in, *this);
+		} else {
+			*this = sub(*this, in);
+			if (!(*this) && this->negative) {
+				this->negative = false;
+			}
+		}
+	} else {
+		*this = add(*this, in);
+	}
+	shrink();
+	return *this;
 }
 
 arithmetic arithmetic::operator+(arithmetic in) const {
 	arithmetic temp = *this;
-	return add(temp, in);
+	arithmetic res;
+	if (temp.sign() != in.sign()){
+		if (temp.abs() < in) {
+			res = sub(in, temp);
+			res.negative = !temp.negative;
+		} else {
+			res = sub(temp, in);
+			if (!res) {
+				res.negative = false;
+			} else {
+				res.negative = temp.negative;
+			}
+		}
+	} else {
+		res = add(temp, in);
+		res.negative = this->negative;
+	}
+	res.shrink();
+	return res;
 }
 
 arithmetic& arithmetic::operator-=(const arithmetic &in) {
-	arithmetic temp = in;
-	return sub(*this, temp);
+	if (this->sign() == in.sign()){
+		if (this->abs() < in) {
+			*this = sub(in, *this);
+			this->negative = !(this->negative);
+		} else {
+			*this = sub(*this, in);
+			if (!(*this) && this->negative) {
+				this->negative = false;
+			}
+		}
+	} else {
+		*this = add(*this, in);
+	}
+	shrink();
+	return *this;
 }
 
 arithmetic arithmetic::operator-(arithmetic in) const {
 	arithmetic temp = *this;
-	return sub(temp, in);
+	arithmetic res;
+	if (temp.sign() == in.sign()){
+		if (temp.abs() < in) {
+			res = sub(in, temp);
+			res.negative = !(temp.negative);
+		} else {
+			res = sub(temp, in);
+			if (!res) {
+				res.negative = false;
+			} else {
+				res.negative = temp.negative;
+			}
+		}
+	} else {
+		res = add(temp, in);
+		res.negative = temp.negative;
+	}
+	res.shrink();
+	return res;
 }
 
 arithmetic& arithmetic::operator*=(const arithmetic &in) {
-	arithmetic temp = in;
-	return mult(*this, temp);
+	bool negative = (this->negative ^ in.negative);
+	*this = mult(this->abs(), in);
+	if(!(*this)) {
+		this->negative = false;
+	} else {
+		this->negative = negative;
+	}
+	return *this;
 }
 
 arithmetic arithmetic::operator*(arithmetic in) const {
-	arithmetic temp = *this;
-	return mult(temp, in);
+	arithmetic temp = mult(this->abs(), in);
+	if(!temp) {
+		temp.negative = false;
+	} else {
+		temp.negative = (this->negative ^ in.negative);
+	}
+	return temp;
 }
 
 arithmetic& arithmetic::operator/=(const arithmetic &in) {
-	arithmetic temp = in;
-	return div(*this, temp);
+	bool negative = (this->negative ^ in.negative);
+	*this = div(this->abs(), in.abs());
+	if(!(*this)) {
+		this->negative = false;
+	} else {
+		this->negative = negative;
+	}
+	shrink();
+	return *this;
 }
 
 arithmetic arithmetic::operator/(arithmetic in) const{
-	arithmetic temp = *this;
-	return div(temp, in);
+	arithmetic temp = div(this->abs(), in.abs());
+	if(!temp) {
+		temp.negative = false;
+	} else {
+		temp.negative = (this->negative ^ in.negative);
+	}
+	temp.shrink();
+	return temp;
 }
 
-arithmetic& arithmetic::operator<<=(unsigned int shiftAmount) {
+arithmetic arithmetic::operator%(const arithmetic &in) const {
+	arithmetic res = *this/in;
+	return (*this - res*in);
+}
+
+arithmetic& arithmetic::operator<<=(size_t shiftAmount) {
 	for(int i = 0; i < shiftAmount; ++i) {
 		shiftLeft(*this);
 	}
 	return *this;
 }
 
-arithmetic arithmetic::operator<<(unsigned int shiftAmount) {
+arithmetic arithmetic::operator<<(size_t shiftAmount) {
 	arithmetic temp = *this;
 	for(int i = 0; i < shiftAmount; ++i) {
 		shiftLeft(temp);
@@ -438,18 +589,39 @@ arithmetic arithmetic::operator<<(unsigned int shiftAmount) {
 	return temp;
 }
 
-arithmetic arithmetic::operator>>(unsigned int shiftAmount) {
+arithmetic arithmetic::operator>>(size_t shiftAmount) {
 	arithmetic temp = *this;
+	bool remainderFlag = false;
+
 	for(int i = 0; i < shiftAmount; ++i) {
-		shiftRight(temp);
+		bool tempRemainderFlag = shiftRight(temp);
+		if (tempRemainderFlag && !remainderFlag) {
+			remainderFlag = true;
+		}
 	}
+	
+	if(!temp.sign() && remainderFlag) {
+		temp -= arithmetic("1");
+	}
+	
+	temp.shrink();
 	return temp;
 }
 
-arithmetic& arithmetic::operator>>=(unsigned int shiftAmount) {
+arithmetic& arithmetic::operator>>=(size_t shiftAmount) {
+	bool remainderFlag = false;
 	for(int i = 0; i < shiftAmount; ++i) {
-		shiftRight(*this);
+		bool tempRemainderFlag = shiftRight(*this);
+		if (tempRemainderFlag && !remainderFlag) {
+			remainderFlag = true;
+		}
 	}
+	
+	if(!this->sign() && remainderFlag) {
+		*this -= arithmetic("1");
+	}
+	
+	shrink();
 	return *this;
 }
 
@@ -507,8 +679,52 @@ bool arithmetic::operator!=(const arithmetic &in) const {
 	}
 }
 
+arithmetic arithmetic::pow(const arithmetic exp) const {
+	if (!exp) {
+		return arithmetic("1");
+	} else if(!exp.sign()) {
+		return arithmetic();
+	}
+
+	arithmetic temp = *this;
+	arithmetic expTemp = exp - arithmetic("1");
+	while (!(!expTemp)) {
+		temp*=(*this);
+		expTemp -= arithmetic("1");
+	}
+	return temp;
+}
+
+bool arithmetic::operator!() const {
+	unsigned int bitMask = 128;
+	size_t byteInd = 0;
+
+	while(byteInd < this->size) {
+		while (bitMask >= 1) {
+			if ((bitMask & this->buf[byteInd]) != 0) {
+				return false;
+			}
+			bitMask >>= 1;
+		}
+
+		bitMask = 128;
+		++byteInd;
+	}
+	return true;;
+}
+
 size_t arithmetic::getSize() const {
 	return size;
+}
+
+bool arithmetic::sign() const {
+	return !negative;
+}
+
+arithmetic arithmetic::abs() const {
+	arithmetic temp = *this;
+	temp.negative = false;
+	return temp;
 }
 
 void arithmetic::grow(size_t newSize) {
@@ -517,6 +733,31 @@ void arithmetic::grow(size_t newSize) {
 	buf = new unsigned char[newSize]();
 
 	memcpy(buf+(newSize-size), oldBuf, size);
+	size = newSize;
+
+	delete[] oldBuf;
+}
+
+void arithmetic::shrink() {
+	unsigned char *oldBuf = buf;
+
+	size_t bytesToShrink = 0;
+	size_t byteInd = 0;
+	while(byteInd < this->getSize() && (buf[byteInd] == 0)) {
+		++bytesToShrink;
+		++byteInd;
+	}
+
+	size_t newSize = size - bytesToShrink;
+
+	if (newSize == 0){
+		++newSize;
+		--bytesToShrink;
+	}
+
+	buf = new unsigned char[newSize]();
+
+	memcpy(buf, oldBuf+bytesToShrink, newSize);
 	size = newSize;
 
 	delete[] oldBuf;

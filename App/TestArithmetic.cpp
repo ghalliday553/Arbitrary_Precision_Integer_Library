@@ -1,25 +1,36 @@
 #include <Arithmetic.hpp>
 #include <limits.h>
+#include <cmath>
 #include <stdio.h>
 
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
 TEST_CASE("INITIAL TESTS") {
+	/*
+	printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
+	printf("expected is %s\n", ref.str().c_str());
+	printf("output is %s\n", output.str().c_str());
+	printf("outputCompound is %s\n", outputCompound.str().c_str());
+	
+	REQUIRE(!strcmp(output.str().c_str(), ref.str().c_str()));
+	*/
 }
 
-TEST_CASE("String to Binary") {
-	unsigned int i = 0;
+TEST_CASE("StringToBinary") {
+	int i = -1000;
 	//while(i < 1000000) {
 	while(i < 1000) {
 		std::string s = std::to_string(i);
-		arithmetic ar(s.c_str());
+		arithmetic ar(s);
 
 		std::stringstream output, ref;
 
 		size_t size = ar.getSize();
 
-		const char* beg = reinterpret_cast<const char*>(&i);
+		int absolute = abs(i);
+
+		const char* beg = reinterpret_cast<const char*>(&absolute);
 		for (size_t ind = size-1; ind > 0; --ind) {
 			ref<<std::bitset<8>(beg[ind]);
 		}
@@ -28,39 +39,50 @@ TEST_CASE("String to Binary") {
 		output<<ar;
 
 		REQUIRE(!strcmp(output.str().c_str(), ref.str().c_str()));
+		if(i >= 0) {
+			REQUIRE(ar.sign() == true);
+		} else {
+			REQUIRE(ar.sign() == false);
+		}
 		++i;
 	}
+
+	printf("PASSED STRING_TO_BINARY CASES\n");
 }
 
-TEST_CASE("Test Add") {
+TEST_CASE("Addition") {
 
-	unsigned int operand1 = 0;
-	unsigned int operand2 = 0;
-	unsigned int expected = 0;
+	int operand1 = -1000;
+	int operand2 = -1000;
+	int expected = 0;
 
 	while(operand1 <= 1000) {
 		while(operand2 <= 1000) {
 			expected = operand1 + operand2;
 
-			arithmetic ar1 = (std::to_string(operand1).c_str());
-			arithmetic ar2 = (std::to_string(operand2).c_str());
+			arithmetic ar1 = (std::to_string(operand1));
+			arithmetic ar2 = (std::to_string(operand2));
+			arithmetic result = (std::to_string(expected));
+
 			arithmetic ar3 = ar1+ar2;
 			ar1+=ar2;
 
 			std::stringstream output, outputCompound, ref;
 
-			size_t size = ar1.getSize();
-			const char* beg = reinterpret_cast<const char*>(&expected);
-			for (size_t ind = size-1; ind > 0; --ind) {
-				ref<<std::bitset<8>(beg[ind]);
-			}
-			ref<<std::bitset<8>(beg[0]);
+			ref<<result;
 
 			output<<ar3;
 			outputCompound<<ar1;
 
-			REQUIRE(!strcmp(output.str().c_str(), ref.str().c_str()));
-			REQUIRE(!strcmp(outputCompound.str().c_str(), ref.str().c_str()));
+			if (operand1 % 200 == 0 && operand2 == 0) {
+				printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
+			}
+
+			REQUIRE(output.str() == ref.str());
+			REQUIRE(outputCompound.str() == ref.str());
+			REQUIRE(ar3.sign() == result.sign());
+			REQUIRE(ar1.sign() == result.sign());
+			
 			++operand2;
 		}
 
@@ -81,34 +103,36 @@ TEST_CASE("Test Add") {
 	printf("PASSED ADDITION CASES \n");
 }
 
-TEST_CASE("Subtract") {
-	unsigned int operand1 = 0;
-	unsigned int operand2 = 0;
-	unsigned int expected = 0;
+TEST_CASE("Subtraction") {
+	int operand1 = -1000;
+	int operand2 = -1000;
+	int expected = 0;
 
 	while(operand1 <= 1000) {
-		while(operand2 <= operand1) {
+		while(operand2 <= 1000) {
 			expected = operand1 - operand2;
 
-			arithmetic ar1 = (std::to_string(operand1).c_str());
-			arithmetic ar2 = (std::to_string(operand2).c_str());
+			arithmetic ar1 = (std::to_string(operand1));
+			arithmetic ar2 = (std::to_string(operand2));
+			arithmetic result = (std::to_string(expected));
+
 			arithmetic ar3 = ar1-ar2;
 			ar1-=ar2;
 
 			std::stringstream output, outputCompound, ref;
 
-			size_t size = ar1.getSize();
-			const char* beg = reinterpret_cast<const char*>(&expected);
-			for (size_t ind = size-1; ind > 0; --ind) {
-				ref<<std::bitset<8>(beg[ind]);
-			}
-			ref<<std::bitset<8>(beg[0]);
-
+			ref<<result;
 			outputCompound<<ar1;
 			output<<ar3;
 
-			REQUIRE(!strcmp(output.str().c_str(), ref.str().c_str()));
-			REQUIRE(!strcmp(outputCompound.str().c_str(), ref.str().c_str()));
+			if (operand1 % 200 == 0 && operand2 == 0) {
+				printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
+			}
+
+			REQUIRE(output.str() == ref.str());
+			REQUIRE(outputCompound.str() == ref.str());
+			REQUIRE(ar3.sign() == result.sign());
+			REQUIRE(ar1.sign() == result.sign());
 			++operand2;
 		}
 
@@ -118,34 +142,36 @@ TEST_CASE("Subtract") {
 	printf("PASSED SUBTRACTION CASES \n");
 }
 
-TEST_CASE("Multiply") {
-	unsigned int operand1 = 0;
-	unsigned int operand2 = 0;
-	unsigned int expected = 0;
+TEST_CASE("Multiplication") {
+	int operand1 = -1000;
+	int operand2 = -1000;
+	int expected = 0;
 
 	while(operand1 <= 1000) {
 		while(operand2 <= 1000) {
 			expected = operand1*operand2;
 
-			arithmetic ar1 = (std::to_string(operand1).c_str());
-			arithmetic ar2 = (std::to_string(operand2).c_str());
+			arithmetic ar1 = (std::to_string(operand1));
+			arithmetic ar2 = (std::to_string(operand2));
+			arithmetic result = (std::to_string(expected));
+
 			arithmetic ar3 = ar1*ar2;
 			ar1*=ar2;
 
 			std::stringstream output, outputCompound, ref;
 
-			size_t size = ar1.getSize();
-			const char* beg = reinterpret_cast<const char*>(&expected);
-			for (size_t ind = size-1; ind > 0; --ind) {
-				ref<<std::bitset<8>(beg[ind]);
-			}
-			ref<<std::bitset<8>(beg[0]);
-
-			output<<ar3;
+			ref<<result;
 			outputCompound<<ar1;
+			output<<ar3;
 
-			REQUIRE(!strcmp(output.str().c_str(), ref.str().c_str()));
-			REQUIRE(!strcmp(outputCompound.str().c_str(), ref.str().c_str()));
+			if (operand1 % 200 == 0 && operand2 == 0) {
+				printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
+			}
+
+			REQUIRE(output.str() == ref.str());
+			REQUIRE(outputCompound.str() == ref.str());
+			REQUIRE(ar3.sign() == result.sign());
+			REQUIRE(ar1.sign() == result.sign());
 			++operand2;
 		}
 
@@ -156,33 +182,35 @@ TEST_CASE("Multiply") {
 	printf("PASSED MULTIPLICATION CASES \n");
 }
 
-TEST_CASE("Shift Left") {
-	unsigned int operand1 = 0;
-	unsigned int operand2 = 0;
-	unsigned int expected = 0;
+TEST_CASE("ShiftLeft") {
+	int operand1 = -1000;
+	int operand2 = 0;
+	int expected = 0;
 
-	while(operand1 <= 10000) {
-		while(operand2 <= 8) {
+	while(operand1 <= 1000) {
+		while(operand2 <= 20) {
 			expected = operand1<<operand2;
 
-			arithmetic ar1 = (std::to_string(operand1).c_str());
+			arithmetic ar1 = (std::to_string(operand1));
+			arithmetic result = (std::to_string(expected));
+
 			arithmetic ar2 = ar1<<operand2;
 			ar1<<=operand2;
 
 			std::stringstream output, outputCompound, ref;
 
-			size_t size = ar1.getSize();
-			const char* beg = reinterpret_cast<const char*>(&expected);
-			for (size_t ind = size-1; ind > 0; --ind) {
-				ref<<std::bitset<8>(beg[ind]);
-			}
-			ref<<std::bitset<8>(beg[0]);
-
-			output<<ar2;
+			ref<<result;
 			outputCompound<<ar1;
+			output<<ar2;
 
-			REQUIRE(!strcmp(output.str().c_str(), ref.str().c_str()));
-			REQUIRE(!strcmp(outputCompound.str().c_str(), ref.str().c_str()));
+			if (operand1 % 200 == 0 && operand2 == 0) {
+				printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
+			}
+
+			REQUIRE(output.str() == ref.str());
+			REQUIRE(outputCompound.str() == ref.str());
+			REQUIRE(ar2.sign() == result.sign());
+			REQUIRE(ar1.sign() == result.sign());
 			++operand2;
 		}
 
@@ -194,32 +222,34 @@ TEST_CASE("Shift Left") {
 }
 
 TEST_CASE("ShiftRight") {
-	unsigned int operand1 = 0;
-	unsigned int operand2 = 0;
-	unsigned int expected = 0;
+	int operand1 = -1000;
+	int operand2 = 0;
+	int expected = 0;
 
-	while(operand1 <= 10000) {
-		while(operand2 <= 8) {
+	while(operand1 <= 1000) {
+		while(operand2 <= 15) {
 			expected = operand1>>operand2;
 
-			arithmetic ar1 = (std::to_string(operand1).c_str());
+			arithmetic ar1 = (std::to_string(operand1));
+			arithmetic result = (std::to_string(expected));
+
 			arithmetic ar2 = ar1>>operand2;
 			ar1>>=operand2;
 
 			std::stringstream output, outputCompound, ref;
 
-			size_t size = ar1.getSize();
-			const char* beg = reinterpret_cast<const char*>(&expected);
-			for (size_t ind = size-1; ind > 0; --ind) {
-				ref<<std::bitset<8>(beg[ind]);
-			}
-			ref<<std::bitset<8>(beg[0]);
-
-			output<<ar2;
+			ref<<result;
 			outputCompound<<ar1;
+			output<<ar2;
 
-			REQUIRE(!strcmp(output.str().c_str(), ref.str().c_str()));
-			REQUIRE(!strcmp(outputCompound.str().c_str(), ref.str().c_str()));
+			if (operand1 % 200 == 0 && operand2 == 0) {
+				printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
+			}
+
+			REQUIRE(output.str() == ref.str());
+			REQUIRE(outputCompound.str() == ref.str());
+			REQUIRE(ar2.sign() == result.sign());
+			REQUIRE(ar1.sign() == result.sign());
 			++operand2;
 		}
 
@@ -231,12 +261,16 @@ TEST_CASE("ShiftRight") {
 }
 
 TEST_CASE("Comparisons") {
-	unsigned int operand1 = 0;
-	unsigned int operand2 = 0;
-	unsigned int expected = 0;
+	int operand1 = -1000;
+	int operand2 = -1000;
+	int expected = 0;
 
 	while(operand1 <= 1000) {
 		while(operand2 <= 1000) {
+			if (operand1 % 200 == 0 && operand2 == 0) {
+				printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
+			}
+
 			bool expected[] = {false, false, false, false, false, false};
 			for(int i = 0; i<6; i++) {
 				switch(i) {
@@ -249,8 +283,8 @@ TEST_CASE("Comparisons") {
 				}
 			} 
 
-			arithmetic ar1 = (std::to_string(operand1).c_str());
-			arithmetic ar2 = (std::to_string(operand2).c_str());
+			arithmetic ar1 = (std::to_string(operand1));
+			arithmetic ar2 = (std::to_string(operand2));
 			
 			bool output[] = {false, false, false, false, false, false};
 			for(int i = 0; i<6; i++) {
@@ -279,33 +313,122 @@ TEST_CASE("Comparisons") {
 }
 
 TEST_CASE("Division") {
-	unsigned int operand1 = 3;
-	unsigned int operand2 = 1;
-	unsigned int expected = 0;
+	int operand1 = -1000;
+	int operand2 = -1000;
+	int expected = 0;
 
 	while(operand1 <= 1000) {
 		while(operand2 <= 1000) {
-			expected = operand1/operand2;
+			if (operand2 == 0) {
+				expected = 0;
+			} else {
+				expected = operand1/operand2;
+			}
 
-			arithmetic ar1 = (std::to_string(operand1).c_str());
-			arithmetic ar2 = (std::to_string(operand2).c_str());
+			arithmetic ar1 = (std::to_string(operand1));
+			arithmetic ar2 = (std::to_string(operand2));
+			arithmetic result = (std::to_string(expected));
+
 			arithmetic ar3 = ar1/ar2;
 			ar1/=ar2;
 
 			std::stringstream output, outputCompound, ref;
 
-			size_t size = ar1.getSize();
-			const char* beg = reinterpret_cast<const char*>(&expected);
+			ref<<result;
+			outputCompound<<ar1;
+			output<<ar3;
+
+			if (operand1 % 200 == 0 && operand2 == 0) {
+				printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
+			}
+
+			REQUIRE(output.str() == ref.str());
+			REQUIRE(outputCompound.str() == ref.str());
+			REQUIRE(ar3.sign() == result.sign());
+			REQUIRE(ar1.sign() == result.sign());
+			++operand2;
+		}
+
+		operand2 = 0;
+		++operand1;
+	}
+
+	printf("PASSED DIVISION CASES \n");
+}
+
+TEST_CASE("Modulus") {
+	int operand1 = -1000;
+	int operand2 = -1000;
+	int expected = 0;
+
+	while(operand1 <= 1000) {
+		while(operand2 <= 1000) {
+			if (operand2 == 0) {
+				expected = operand1;
+			} else {
+				expected = operand1%operand2;
+			}
+
+			arithmetic ar1 = (std::to_string(operand1));
+			arithmetic ar2 = (std::to_string(operand2));
+			arithmetic result = (std::to_string(expected));
+
+			arithmetic ar3 = ar1%ar2;
+
+			std::stringstream output, outputCompound, ref;
+
+			ref<<result;
+			output<<ar3;
+
+			if (operand1 % 200 == 0 && operand2 == 0) {
+				printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
+			}
+
+			REQUIRE(output.str() == ref.str());
+			REQUIRE(ar3.sign() == result.sign());
+			++operand2;
+		}
+
+		operand2 = 0;
+		++operand1;
+	}
+
+	printf("PASSED MODULUS CASES \n");
+}
+
+TEST_CASE("Pow") {
+	long long int operand1 = -10;
+	long long int operand2 = -10;
+	long long int expected = 0;
+
+	while(operand1 <= 9) {
+		while(operand2 <= 9) {
+			
+			expected = pow(operand1, operand2);
+
+			arithmetic ar1 = (std::to_string(operand1));
+			arithmetic ar2 = (std::to_string(operand2));
+			arithmetic ar3 = ar1.pow(ar2);
+
+			std::stringstream output, outputCompound, ref;
+
+			int absolute = abs(expected);
+
+			size_t size = ar3.getSize();
+			const char* beg = reinterpret_cast<const char*>(&absolute);
 			for (size_t ind = size-1; ind > 0; --ind) {
 				ref<<std::bitset<8>(beg[ind]);
 			}
 			ref<<std::bitset<8>(beg[0]);
 
 			output<<ar3;
-			outputCompound<<ar1;
 
 			REQUIRE(!strcmp(output.str().c_str(), ref.str().c_str()));
-			REQUIRE(!strcmp(outputCompound.str().c_str(), ref.str().c_str()));
+			if(expected >= 0) {
+				REQUIRE(ar3.sign() == true);
+			} else if(expected < 0) {
+				REQUIRE(ar3.sign() == false);
+			}
 
 			++operand2;
 		}
@@ -314,9 +437,7 @@ TEST_CASE("Division") {
 		++operand1;
 	}
 
-	printf("PASSED DIVISION CASES \n");
+	printf("PASSED POW CASES \n");
 }
-
-
 
 
