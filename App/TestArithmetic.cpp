@@ -166,8 +166,8 @@ TEST_CASE("ShiftLeft") {
 			arithmetic ar1 = (std::to_string(operand1));
 			arithmetic ar2 = (std::to_string(operand2));
 
-			arithmetic ar3 = ar1<<operand2;
-			ar1<<=operand2;
+			arithmetic ar3 = ar1<<ar2;
+			ar1<<=ar2;
 
 			if (operand1 % 10 == 0 && operand2 == 0) {
 				printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
@@ -200,8 +200,8 @@ TEST_CASE("ShiftRight") {
 			arithmetic ar1 = (std::to_string(operand1));
 			arithmetic ar2 = (std::to_string(operand2));
 
-			arithmetic ar3 = ar1>>operand2;
-			ar1>>=operand2;
+			arithmetic ar3 = ar1>>ar2;
+			ar1>>=ar2;
 
 			if (operand1 % 10 == 0 && operand2 == 0) {
 				printf("operand1 is %i | operand2 is %i\n", operand1, operand2);

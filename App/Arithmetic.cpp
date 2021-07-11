@@ -290,7 +290,7 @@ arithmetic mult(arithmetic operand1, arithmetic operand2) {
 		while (bitMask <= 128) {
 			if (operand2.buf[byteInd] & bitMask) {
 				arithmetic temp(operand1);
-				temp <<= bitOffset;
+				temp <<= arithmetic(std::to_string(bitOffset));
 				result += temp;
 				if (zeroFlag) {
 					zeroFlag = false;
@@ -361,7 +361,7 @@ arithmetic div(arithmetic operand1, arithmetic operand2) {
 	// Perform division
 	while (byteInd < operand1.size) {
 		while(bitMask > 0) {
-			temp = (operand1 >> (8*operand1.size - (8*byteInd + bitInd + 1)));
+			temp = (operand1 >> arithmetic(std::to_string((8*operand1.size - (8*byteInd + bitInd + 1)))));
 			if (operand2 <= temp) {
 				break;
 			}
@@ -374,7 +374,7 @@ arithmetic div(arithmetic operand1, arithmetic operand2) {
 
 			size_t numberOfShifts = ((operand1.size-(byteInd+1))*8 + 7-bitInd);
 		
-			operand1 = sub(operand1, (operand2 << numberOfShifts));
+			operand1 = sub(operand1, (operand2 << arithmetic(std::to_string(numberOfShifts))));
 			temp = arithmetic();
 		}
 
@@ -849,8 +849,8 @@ arithmetic arithmetic::operator%(const arithmetic &in) const {
  *
  * The returned arithmetic object size will be the minimum needed to represent the modulus result.
  */
-arithmetic& arithmetic::operator<<=(size_t shiftAmount) {
-	for(int i = 0; i < shiftAmount; ++i) {
+arithmetic& arithmetic::operator<<=(arithmetic shiftAmount) {
+	for(; !(!shiftAmount); --shiftAmount) {
 		shiftLeft(*this);
 	}
 	return *this;
@@ -859,9 +859,9 @@ arithmetic& arithmetic::operator<<=(size_t shiftAmount) {
 /*
  * Left shift
  */ 
-arithmetic arithmetic::operator<<(size_t shiftAmount) {
+arithmetic arithmetic::operator<<(arithmetic shiftAmount) {
 	arithmetic temp = *this;
-	for(int i = 0; i < shiftAmount; ++i) {
+	for(; !(!shiftAmount); --shiftAmount) {
 		shiftLeft(temp);
 	}
 	return temp;
@@ -872,11 +872,11 @@ arithmetic arithmetic::operator<<(size_t shiftAmount) {
  * 
  * The returned object will be equivalent to a right shift operation on a two's-compliment value.
  */
-arithmetic arithmetic::operator>>(size_t shiftAmount) {
+arithmetic arithmetic::operator>>(arithmetic shiftAmount) {
 	arithmetic temp = *this;
 	bool remainderFlag = false;
 
-	for(int i = 0; i < shiftAmount; ++i) {
+	for(; !(!shiftAmount); --shiftAmount) {
 		bool tempRemainderFlag = shiftRight(temp);
 		if (tempRemainderFlag && !remainderFlag) {
 			remainderFlag = true;
@@ -896,9 +896,9 @@ arithmetic arithmetic::operator>>(size_t shiftAmount) {
  * 
  * The modified object will be equivalent to a right shift operation on a two's-compliment value.
  */
-arithmetic& arithmetic::operator>>=(size_t shiftAmount) {
+arithmetic& arithmetic::operator>>=(arithmetic shiftAmount) {
 	bool remainderFlag = false;
-	for(int i = 0; i < shiftAmount; ++i) {
+	for(; !(!shiftAmount); --shiftAmount) {
 		bool tempRemainderFlag = shiftRight(*this);
 		if (tempRemainderFlag && !remainderFlag) {
 			remainderFlag = true;
@@ -1065,7 +1065,8 @@ bool arithmetic::operator&&(const arithmetic &in) const {
 /*
  * Bitwise NOT
  *
- * Returns an arithemtic object corresponding to every *this bit being inverted.
+ * Returns an arithemtic object with the same sign and every *this magnitude bit inverted.
+ * The sign of *this will remain unchanged.
  */
 arithmetic arithmetic::operator~() const {
 	arithmetic ret = *this;
@@ -1079,7 +1080,8 @@ arithmetic arithmetic::operator~() const {
 /*
  * Bitwise AND
  *
- * Returns an arithemtic object corresponding to the bitwise AND between *this and in.
+ * Returns an arithemtic object corresponding to the bitwise AND between the magnitudes of *this and in.
+ * The returned object sign will be equivalent to *this.
  * The returned object size will be the larger of either *this or in.
  */
 arithmetic arithmetic::operator&(const arithmetic &in) const {
@@ -1101,7 +1103,8 @@ arithmetic arithmetic::operator&(const arithmetic &in) const {
 /*
  * Bitwise AND assignment
  *
- * Sets *this to the bitwise AND between *this and in.
+ * Sets *this to the bitwise AND between the magnitdues of *this and in.
+ * The sign of *this will remain unchanged.
  * The modified object size will be the larger of either *this or in.
  */
 arithmetic& arithmetic::operator&=(const arithmetic &in) {
@@ -1123,7 +1126,8 @@ arithmetic& arithmetic::operator&=(const arithmetic &in) {
 /*
  * Bitwise OR
  *
- * Returns an arithemtic object corresponding to the bitwise OR between *this and in.
+ * Returns an arithemtic object corresponding to the bitwise OR between the magnitudes of *this and in.
+ * The returned object sign will be equivalent to *this.
  * The returned object size will be the larger of either *this or in.
  */
 arithmetic arithmetic::operator|(const arithmetic &in) const {
@@ -1145,7 +1149,8 @@ arithmetic arithmetic::operator|(const arithmetic &in) const {
 /*
  * Bitwise OR assignment
  *
- * Sets *this to the bitwise OR between *this and in.
+ * Sets *this to the bitwise OR between the magnitdues of *this and in.
+ * The sign of *this will remain unchanged.
  * The modified object size will be the larger of either *this or in.
  */
 arithmetic& arithmetic::operator|=(const arithmetic &in) {

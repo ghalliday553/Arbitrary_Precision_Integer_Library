@@ -175,26 +175,26 @@ public:
 	 *
 	 * The returned arithmetic object size will be the minimum needed to represent the modulus result.
 	 */
-	arithmetic& operator<<=(size_t shiftAmount);
+	arithmetic& operator<<=(arithmetic shiftAmount);
 
 	/*
 	 * Left shift
 	 */ 
-	arithmetic operator<<(size_t shiftAmount);
+	arithmetic operator<<(arithmetic shiftAmount);
 
 	/*
 	 * Right shift
 	 * 
 	 * The returned object will be equivalent to a right shift operation on a two's-compliment value.
 	 */
-	arithmetic& operator>>=(size_t shiftAmount);
+	arithmetic& operator>>=(arithmetic shiftAmount);
 
 	/*
 	 * Right shift assignment
 	 * 
 	 * The modified object will be equivalent to a right shift operation on a two's-compliment value.
 	 */
-	arithmetic operator>>(size_t shiftAmount);
+	arithmetic operator>>(arithmetic shiftAmount);
 
 
 	// COMPARISONS
@@ -270,14 +270,16 @@ public:
 	/*
 	 * Bitwise NOT
 	 *
-	 * Returns an arithemtic object corresponding to every *this bit being inverted.
+	 * Returns an arithemtic object with the same sign and every *this magnitude bit inverted.
+	 * The sign of *this will remain unchanged.
 	 */
 	arithmetic operator~() const;
 
 	/*
 	 * Bitwise AND assignment
 	 *
-	 * Sets *this to the bitwise AND between *this and in.
+	 * Sets *this to the bitwise AND between the magnitdues of *this and in.
+	 * The sign of *this will remain unchanged.
 	 * The modified object size will be the larger of either *this or in.
 	 */
 	arithmetic& operator&=(const arithmetic &in);
@@ -285,7 +287,8 @@ public:
 	/*
 	 * Bitwise AND
 	 *
-	 * Returns an arithemtic object corresponding to the bitwise AND between *this and in.
+	 * Returns an arithemtic object corresponding to the bitwise AND between the magnitudes of *this and in.
+	 * The returned object sign will be equivalent to *this.
 	 * The returned object size will be the larger of either *this or in.
 	 */
 	arithmetic operator&(const arithmetic &in) const;
@@ -293,7 +296,8 @@ public:
 	/*
 	 * Bitwise OR assignment
 	 *
-	 * Sets *this to the bitwise OR between *this and in.
+	 * Sets *this to the bitwise OR between the magnitdues of *this and in.
+	 * The sign of *this will remain unchanged.
 	 * The modified object size will be the larger of either *this or in.
 	 */
 	arithmetic& operator|=(const arithmetic &in);
@@ -301,7 +305,8 @@ public:
 	/*
 	 * Bitwise OR
 	 *
-	 * Returns an arithemtic object corresponding to the bitwise OR between *this and in.
+	 * Returns an arithemtic object corresponding to the bitwise OR between the magnitudes of *this and in.
+	 * The returned object sign will be equivalent to *this.
 	 * The returned object size will be the larger of either *this or in.
 	 */
 	arithmetic operator|(const arithmetic &in) const;
