@@ -1,11 +1,22 @@
 #include <Arithmetic.hpp>
 
 /*
- * Helper function for stringToBits()
+ * Divides a decimal string by 2. 
+ *
+ * INPUTS:
+ *	str - Arbitrary size string consisting only of decimal numbers.
+ *	
+ * OUTPUTS:	
+ * 	str - Output is written in place.
+ *
+ * PRECONDITIONS:
+ *	- str must contain only decimal numbers.
  */
-static void divStringByTwo(char *buf) {
+static void divStringByTwo(std::string &str) {
 	int add = 0;
-	for (char *it = buf; *it != '\0'; ++it) {
+
+	// Loop through string
+	for(std::string::iterator it = str.begin(); it != str.end(); ++it) {
 		int digit = *it - '0';
 		digit /= 2;
 		digit += add;
@@ -24,39 +35,37 @@ static void divStringByTwo(char *buf) {
 		*it = digit + '0';
 	}
 
-	int zeroOffset = 0;
-	for(char *it = buf; *it == '0'; ++it) {
-		++zeroOffset;
-	}
-	memmove(buf, buf+zeroOffset, strlen(buf)-zeroOffset+1);
+	// Erase front padded zeros
+	str.erase(0, std::min(str.find_first_not_of('0'), str.size() - 1));
 }
 
 /*
- * Converts a string of decimal numbers to both its binary string and binary equivalents
+ * Converts a positive string of decimal numbers to its binary equivalent using an array of unsigned chars.
+ * The concatination of array members forms the unsigned magnitude binary representation of the provided number. 
  *
- * Input: inputBuf
- *	- Input string consisting of a decimal number of arbitrary size
+ * INPUTS:
+ *	inputStr - Input string consisting of a decimal number with arbitrary size
+ *	outputBufSize - Size of the provided buffer to hold the binary equivalent
+ *	
+ * OUTPUTS:	
+ * 	binaryOutputBuf - buffer to hold the binary equivalent
  *
- * Output: stringOutputBuf, binaryOutputBuf
- *	- Output buffers where the equivalent binary string and binary representations are written
- *
- * Note: stringOutputBuf and binaryOutputBuf must be large enough to hold the largest needed numbers.
- * 		 Their sizes must be defined using ARITHMETIC_STRING_BUFF_LEN and ARITHMETIC_BINARY_BUFF_LEN.
+ * PRECONDITIONS:
+ *	- inputStr must contain only decimal numbers.
+ * 	- outputBufSize must be able to hold the binary representation of the provided decimal number.
  */
-static bool stringToBinary(const char *inputBuf, size_t inputBufSize, unsigned char *binaryOutputBuf, size_t outputBufSize) {
-	char *stringTempBuf = new char[inputBufSize]();
+static void stringToBinary(const char *inputStr, unsigned char *binaryOutputBuf, size_t outputBufSize) {
+	std::string tempString = inputStr;
 	std::queue<unsigned short> outputQueue;
 	unsigned int binaryBitMask = 1;
 	unsigned char currentByte = 0x00;
 	size_t byteInd = outputBufSize-1;
-	int counter = 0;
 	int len;
 
-	// Convert decimal string to binary string
-	strcpy(stringTempBuf, inputBuf);
-
-	while(strlen(stringTempBuf)) {
-		switch(stringTempBuf[strlen(stringTempBuf)-1]) {
+	// Look while the decimal string is not "0"
+	while(tempString.find_first_not_of('0') != std::string::npos) {
+		// Push 1 onto a queue if least significant digit is odd. Push a 0 otherwise.
+		switch(tempString[tempString.size()-1]) {
 			case '1':
 			case '3':
 			case '5':
@@ -68,10 +77,10 @@ static bool stringToBinary(const char *inputBuf, size_t inputBufSize, unsigned c
 				outputQueue.push(0);
 				break;
 		}
-		divStringByTwo(stringTempBuf);
-		counter++;
+		divStringByTwo(tempString);
 	}
 	
+	// Write queue to binaryOutputBuffer, moving from LSB to MSB.
 	while(!outputQueue.empty()) {
 		if (binaryBitMask <= 128) {
 			if (outputQueue.front() == 1) {
@@ -90,12 +99,25 @@ static bool stringToBinary(const char *inputBuf, size_t inputBufSize, unsigned c
 	if (binaryBitMask > 1) {
 		binaryOutputBuf[byteInd] = currentByte;
 	}
-
-	delete[] stringTempBuf;
-	return true;
 }
 
+/*
+ * Performs binary addition on the magnitude of two arithmetic objects.
+ * The returned object size will be the minimum needed to represent the addition result.
+ *
+ * INPUTS:
+ *	operand1
+ *	operand2
+ *	
+ * OUTPUTS:	
+ * 	returns an object holding the addition result
+ *
+ * PRECONDITIONS:
+ *	- operand1 and operand2 must both be positive.
+ */
 arithmetic add(arithmetic operand1, arithmetic operand2) {
+	// Grow operands if needed
+	// Operands must be the same size
 	if (operand2.size < operand1.size) {
 		if (operand1.buf[0] & 0x80) {
 			operand1.grow(operand1.size+1);
@@ -121,6 +143,7 @@ arithmetic add(arithmetic operand1, arithmetic operand2) {
 	bool carry = false;
 	unsigned short binaryBitMask = 1;
 
+	// Perform binary addition
 	while (1) {
 		while (binaryBitMask <= 128) {
 			if ((binaryBitMask & operand1.buf[byteInd]) && (binaryBitMask & operand2.buf[byteInd])) {
@@ -161,7 +184,24 @@ arithmetic add(arithmetic operand1, arithmetic operand2) {
 	return operand1;
 }
 
+
+/*
+ * Performs binary subtraction on the magnitude of two arithmetic objects.
+ * The returned object size will be the same as operand1.
+ *
+ * INPUTS:
+ *	operand1
+ *	operand2 - value to subtract from operand 1
+ *	
+ * OUTPUTS:	
+ * 	returns an object holding the subtraction result
+ *
+ * PRECONDITIONS:
+ *	- operand1 must be equal or greater than operand 2.
+ */
 arithmetic sub(arithmetic operand1, arithmetic operand2) {
+	// Grow operands if needed
+	// Operands must be the same size
 	if (operand2.size < operand1.size) {
 		operand2.grow(operand1.size);
 	}
@@ -170,6 +210,7 @@ arithmetic sub(arithmetic operand1, arithmetic operand2) {
 	bool borrow = false;
 	unsigned short binaryBitMask = 1;
 
+	// Perform binary subtraction
 	while (1) {
 		while (binaryBitMask <= 128) {
 			if ((binaryBitMask & operand1.buf[byteInd]) >= 1 && (binaryBitMask & operand2.buf[byteInd]) >= 1) {
@@ -213,7 +254,23 @@ arithmetic sub(arithmetic operand1, arithmetic operand2) {
 	return operand1;
 }
 
+/*
+ * Performs binary multiplication on the magnitude of two arithmetic objects.
+ * The returned object size will be the minumum needed to hold the multiplication result.
+ *
+ * INPUTS:
+ *	operand1
+ *	operand2
+ *	
+ * OUTPUTS:	
+ * 	returns an object holding the multiplcation result
+ *
+ * PRECONDITIONS:
+ *	- operand1 and operand2 must be positive.
+ */
 arithmetic mult(arithmetic operand1, arithmetic operand2) {
+	// Grow operands if needed
+	// Operands must be the same size
 	if (operand2.size < operand1.size) {
 		operand2.grow(operand1.size);
 	} else if (operand2.size > operand1.size) {
@@ -228,6 +285,7 @@ arithmetic mult(arithmetic operand1, arithmetic operand2) {
 
 	bool zeroFlag = true;
 
+	// Perform multiplication
 	while (1) {
 		while (bitMask <= 128) {
 			if (operand2.buf[byteInd] & bitMask) {
@@ -260,11 +318,31 @@ arithmetic mult(arithmetic operand1, arithmetic operand2) {
 	return operand1;
 }
 
+/*
+ * Performs binary division on the magnitude of two arithmetic objects.
+ * The returned object size will be the size of the larger operand.
+ *
+ * INPUTS:
+ *	operand1
+ *	operand2 - value operand1 will be divided by
+ *	
+ * OUTPUTS:	
+ * 	returns an object holding the division result
+ *
+ * PRECONDITIONS:
+ *	- operand1 and operand2 must be positive.
+ *
+ * NOTES:
+ *	- The result of a division by 0 is defined as 0.
+ */
 arithmetic div(arithmetic operand1, arithmetic operand2) {
+	// Division by 0 is defined as 0
 	if(!operand2) {
 		return arithmetic();
 	}
 
+	// Grow operands if needed
+	// Operands must be the same size
 	if (operand2.size < operand1.size) {
 		operand2.grow(operand1.size);
 	} else if (operand2.size > operand1.size) {
@@ -280,6 +358,7 @@ arithmetic div(arithmetic operand1, arithmetic operand2) {
 	unsigned short bitInd = 0;
 	unsigned short bitMask = 128;
 
+	// Perform division
 	while (byteInd < operand1.size) {
 		while(bitMask > 0) {
 			temp = (operand1 >> (8*operand1.size - (8*byteInd + bitInd + 1)));
@@ -309,6 +388,19 @@ arithmetic div(arithmetic operand1, arithmetic operand2) {
 	return res;
 }
 
+/*
+ * Performs a single left shift operation on the magnitude of an arithmetic object.
+ * The size of the provided object may grow by 1 byte if required.
+ *
+ * INPUTS:
+ *	in
+ *	
+ * OUTPUTS:	
+ * 	in
+ *
+ * PRECONDITIONS:
+ *	- none.
+ */
 void shiftLeft(arithmetic &in) {
 	size_t prevSize = in.size;
 	if (in.buf[0] & 0x80) {
@@ -325,6 +417,20 @@ void shiftLeft(arithmetic &in) {
 	in.buf[in.size-1]<<=1;
 }
 
+/*
+ * Performs a single right shift operation on the magnitude of an arithmetic object.
+ * The provided object size will not be modified.
+ *
+ * INPUTS:
+ *	in
+ *	
+ * OUTPUTS:	
+ * 	in
+ *	returns a boolean indicating if the lost bit was a 1 (true) or 0 (false).
+ *
+ * PRECONDITIONS:
+ *	- none.
+ */
 bool shiftRight(arithmetic &in) {
 	size_t byteInd = 0;
 	unsigned int newTemp = 0;
@@ -343,7 +449,24 @@ bool shiftRight(arithmetic &in) {
 	return remainder;
 }
 
+/*
+ * Performs a comparison between two arithmetic objects, factoring in the sign.
+ *
+ * INPUTS:
+ *	operand1
+ *	operand2
+ *	
+ * OUTPUTS:	
+ * 	returns +1 if operand1 > operand2
+ *	returns -1 if operand2 > operand1
+ *	returns 0 if the operands are equal
+ *
+ * PRECONDITIONS:
+ *	- none.
+ */
 int compare(arithmetic operand1, arithmetic operand2) {
+	// Grow operands if needed
+	// Operands must be the same size
 	if (operand2.size < operand1.size) {
 		operand2.grow(operand1.size);
 	} else if (operand2.size > operand1.size) {
@@ -355,6 +478,7 @@ int compare(arithmetic operand1, arithmetic operand2) {
 	bool operand1IsGreater = false;
 	bool operand2IsGreater = false;
 
+	// Determine which magnitude is larger
 	while(byteInd < operand1.size) {
 		while (bitMask >= 1) {
 			if ((operand1.buf[byteInd] & bitMask) && !(operand2.buf[byteInd] & bitMask)) {
@@ -375,6 +499,7 @@ int compare(arithmetic operand1, arithmetic operand2) {
 		++byteInd;
 	}
 
+	// Account for operand signs	
 	if (operand1IsGreater) {
 		if (operand1.sign()) {
 			return 1;
@@ -398,12 +523,20 @@ int compare(arithmetic operand1, arithmetic operand2) {
 	return 0;
 }
 
+/*
+ *	Default constructor
+ *	
+ *	Initializes to +0 with a size of 1.
+ */
 arithmetic::arithmetic() {
 	buf = new unsigned char[1]();
 	negative = false;
 	size = 1;
 }
 
+/*
+ * Copy constructor
+ */
 arithmetic::arithmetic(const arithmetic &in) {
 	size = in.size;
 	buf = new unsigned char[size]();
@@ -411,6 +544,13 @@ arithmetic::arithmetic(const arithmetic &in) {
 	memcpy(buf, in.buf, size);
 }
 
+/*
+ * Constructor accepting a decimal string.
+ *
+ * PRECONDITIONS:
+ *	- The string must only contain decimal numbers, except for the first character 
+ *		which may be a '-' sign indicating the value is negative.
+ */
 arithmetic::arithmetic(std::string str){
 	if (str.front() == '-') {
 		negative = true;
@@ -419,14 +559,33 @@ arithmetic::arithmetic(std::string str){
 		negative = false;
 	}
 
+	// Find the max number of bytes needed to hold the binary representation of a decimal string with a certain length.
 	size_t requiredBufSize = (floor(str.length()*log2(10))+1)/8.0 + 1;
 
 	buf = new unsigned char[requiredBufSize]();
 	size = requiredBufSize;
-	stringToBinary(str.c_str(), str.length()+1, buf, requiredBufSize);
+	stringToBinary(str.c_str(), buf, requiredBufSize);
 	shrink();
 }
 
+/*
+ * Move constructor
+ *
+ * The value of the moved object is set to +0 with a size of 1.
+ */
+arithmetic::arithmetic(arithmetic &&in) {
+	size = in.getSize();
+	buf = in.buf;
+	negative = in.negative;
+
+	in.buf = new unsigned char[1]();
+	in.size = 1;
+	in.negative = false;
+}
+
+/*
+ * Copy assignment
+ */
 arithmetic& arithmetic::operator=(const arithmetic &in){
 	delete[] buf;
 	buf = new unsigned char[in.size]();
@@ -437,6 +596,28 @@ arithmetic& arithmetic::operator=(const arithmetic &in){
 	return *this;
 }
 
+/*
+ * Move Assignment
+ *
+ * The value of the moved object is set to +0 with a size of 1.
+ */
+arithmetic& arithmetic::operator=(arithmetic &&in) {
+	delete[] buf;
+
+	size = in.getSize();
+	buf = in.buf;
+	negative = in.negative;
+
+	in.buf = new unsigned char[1]();
+	in.size = 1;
+	in.negative = false;
+
+	return *this;
+}
+
+/*
+ * Destructor
+ */ 
 arithmetic::~arithmetic(){
 	if (buf != nullptr) {
 		delete[] buf;
@@ -444,9 +625,14 @@ arithmetic::~arithmetic(){
 	buf = nullptr;
 }
 
+/*
+ * Compound addition.
+ *
+ * The modified arithmetic object size will be the minimum needed to represent the addition result.
+ */
 arithmetic& arithmetic::operator+=(const arithmetic &in) {
 	if (this->sign() != in.sign()){
-		if (this->abs() < in) {
+		if (this->abs() < in.abs()) {
 			*this = sub(in, *this);
 		} else {
 			*this = sub(*this, in);
@@ -461,11 +647,16 @@ arithmetic& arithmetic::operator+=(const arithmetic &in) {
 	return *this;
 }
 
+/*
+ * Binary addition.
+ *
+ * The returned object size will be the minimum needed to represent the addition result.
+ */
 arithmetic arithmetic::operator+(arithmetic in) const {
 	arithmetic temp = *this;
 	arithmetic res;
 	if (temp.sign() != in.sign()){
-		if (temp.abs() < in) {
+		if (temp.abs() < in.abs()) {
 			res = sub(in, temp);
 			res.negative = !temp.negative;
 		} else {
@@ -484,9 +675,34 @@ arithmetic arithmetic::operator+(arithmetic in) const {
 	return res;
 }
 
+/*
+ * Pre-increment.
+ *
+ * The modified arithmetic object size will be the minimum needed to represent the addition result.
+ */
+arithmetic& arithmetic::operator++() {
+	return *this += arithmetic("1");
+}
+
+/*
+ * Post-increment.
+ *
+ * The modified arithmetic object size will be the minimum needed to represent the addition result.
+ */
+arithmetic arithmetic::operator++(int) {
+	arithmetic temp = *this;
+	*this += arithmetic("1");
+	return temp;
+}
+
+/*
+ * Compound subtraction.
+ *
+ * The modified arithmetic object size will be the minimum needed to represent the subtraction result.
+ */
 arithmetic& arithmetic::operator-=(const arithmetic &in) {
 	if (this->sign() == in.sign()){
-		if (this->abs() < in) {
+		if (this->abs() < in.abs()) {
 			*this = sub(in, *this);
 			this->negative = !(this->negative);
 		} else {
@@ -502,11 +718,16 @@ arithmetic& arithmetic::operator-=(const arithmetic &in) {
 	return *this;
 }
 
+/*
+ * Binary subtraction.
+ *
+ * The returned object size will be the minimum needed to represent the subtraction result.
+ */
 arithmetic arithmetic::operator-(arithmetic in) const {
 	arithmetic temp = *this;
 	arithmetic res;
 	if (temp.sign() == in.sign()){
-		if (temp.abs() < in) {
+		if (temp.abs() < in.abs()) {
 			res = sub(in, temp);
 			res.negative = !(temp.negative);
 		} else {
@@ -525,6 +746,31 @@ arithmetic arithmetic::operator-(arithmetic in) const {
 	return res;
 }
 
+/*
+ * Pre-decrement.
+ *
+ * The modified arithmetic object size will be the minimum needed to represent the subtraction result.
+ */
+arithmetic& arithmetic::operator--() {
+	return *this -= arithmetic("1");
+}
+
+/*
+ * Post-decrement.
+ *
+ * The modified arithmetic object size will be the minimum needed to represent the subtraction result.
+ */
+arithmetic arithmetic::operator--(int) {
+	arithmetic temp = *this;
+	*this -= arithmetic("1");
+	return temp;
+}
+
+/*
+ * Compound multiplication.
+ *
+ * The modified arithmetic object size will be the minimum needed to represent the multiplication result.
+ */
 arithmetic& arithmetic::operator*=(const arithmetic &in) {
 	bool negative = (this->negative ^ in.negative);
 	*this = mult(this->abs(), in);
@@ -536,6 +782,11 @@ arithmetic& arithmetic::operator*=(const arithmetic &in) {
 	return *this;
 }
 
+/*
+ * Binary multiplication.
+ *
+ * The returned arithmetic object size will be the minimum needed to represent the multiplication result.
+ */
 arithmetic arithmetic::operator*(arithmetic in) const {
 	arithmetic temp = mult(this->abs(), in);
 	if(!temp) {
@@ -546,6 +797,12 @@ arithmetic arithmetic::operator*(arithmetic in) const {
 	return temp;
 }
 
+/*
+ * Compound division.
+ *
+ * The result of a division by 0 is defined as 0.
+ * The modified arithmetic object size will be the minimum needed to represent the division result.
+ */
 arithmetic& arithmetic::operator/=(const arithmetic &in) {
 	bool negative = (this->negative ^ in.negative);
 	*this = div(this->abs(), in.abs());
@@ -558,6 +815,12 @@ arithmetic& arithmetic::operator/=(const arithmetic &in) {
 	return *this;
 }
 
+/*
+ * Binary division
+ *
+ * The result of a division by 0 is defined as 0.
+ * The returned arithmetic object size will be the minimum needed to represent the division result.
+ */
 arithmetic arithmetic::operator/(arithmetic in) const{
 	arithmetic temp = div(this->abs(), in.abs());
 	if(!temp) {
@@ -569,11 +832,23 @@ arithmetic arithmetic::operator/(arithmetic in) const{
 	return temp;
 }
 
+/*
+ * Modulus
+ * 
+ * Returns an arithmetic object corresponding the modulus result.
+ * The result of a modulus operation with a divisor of 0 is defined to be the dividend.
+ * The returned arithmetic object size will be the minimum needed to represent the modulus result.
+ */
 arithmetic arithmetic::operator%(const arithmetic &in) const {
 	arithmetic res = *this/in;
 	return (*this - res*in);
 }
 
+/*
+ * Left shift assignment
+ *
+ * The returned arithmetic object size will be the minimum needed to represent the modulus result.
+ */
 arithmetic& arithmetic::operator<<=(size_t shiftAmount) {
 	for(int i = 0; i < shiftAmount; ++i) {
 		shiftLeft(*this);
@@ -581,6 +856,9 @@ arithmetic& arithmetic::operator<<=(size_t shiftAmount) {
 	return *this;
 }
 
+/*
+ * Left shift
+ */ 
 arithmetic arithmetic::operator<<(size_t shiftAmount) {
 	arithmetic temp = *this;
 	for(int i = 0; i < shiftAmount; ++i) {
@@ -589,6 +867,11 @@ arithmetic arithmetic::operator<<(size_t shiftAmount) {
 	return temp;
 }
 
+/*
+ * Right shift
+ * 
+ * The returned object will be equivalent to a right shift operation on a two's-compliment value.
+ */
 arithmetic arithmetic::operator>>(size_t shiftAmount) {
 	arithmetic temp = *this;
 	bool remainderFlag = false;
@@ -601,13 +884,18 @@ arithmetic arithmetic::operator>>(size_t shiftAmount) {
 	}
 	
 	if(!temp.sign() && remainderFlag) {
-		temp -= arithmetic("1");
+		temp--;
 	}
 	
 	temp.shrink();
 	return temp;
 }
 
+/*
+ * Right shift assignment
+ * 
+ * The modified object will be equivalent to a right shift operation on a two's-compliment value.
+ */
 arithmetic& arithmetic::operator>>=(size_t shiftAmount) {
 	bool remainderFlag = false;
 	for(int i = 0; i < shiftAmount; ++i) {
@@ -618,13 +906,18 @@ arithmetic& arithmetic::operator>>=(size_t shiftAmount) {
 	}
 	
 	if(!this->sign() && remainderFlag) {
-		*this -= arithmetic("1");
+		(*this)--;
 	}
 	
 	shrink();
 	return *this;
 }
 
+/*
+ * Greater than or equal to
+ *
+ * Returns true if *this is equal or greater than in, or false otherwise.
+ */
 bool arithmetic::operator>=(const arithmetic &in) const {
 	int comp = compare(*this, in);
 	if (comp >= 0) {
@@ -634,6 +927,11 @@ bool arithmetic::operator>=(const arithmetic &in) const {
 	}
 }
 
+/*
+ * Greater than
+ *
+ * Returns true if *this is greater than in, or false otherwise.
+ */
 bool arithmetic::operator>(const arithmetic &in) const {
 	int comp = compare(*this, in);
 	if (comp > 0) {
@@ -643,6 +941,11 @@ bool arithmetic::operator>(const arithmetic &in) const {
 	}
 }
 
+/*
+ * Less than or equal to
+ *
+ * Returns true if *this is less than or equal to in, or false otherwise.
+ */
 bool arithmetic::operator<=(const arithmetic &in) const {
 	int comp = compare(*this, in);
 	if (comp <= 0) {
@@ -652,6 +955,11 @@ bool arithmetic::operator<=(const arithmetic &in) const {
 	}
 }
 
+/*
+ * Less than
+ *
+ * Returns true if *this is less than in, or false otherwise.
+ */
 bool arithmetic::operator<(const arithmetic &in) const {
 	int comp = compare(*this, in);
 	if (comp < 0) {
@@ -661,6 +969,11 @@ bool arithmetic::operator<(const arithmetic &in) const {
 	}
 }
 
+/*
+ * Equal to
+ *
+ * Returns true if *this is equal to in, or false otherwise.
+ */
 bool arithmetic::operator==(const arithmetic &in) const {
 	int comp = compare(*this, in);
 	if (comp == 0) {
@@ -670,6 +983,11 @@ bool arithmetic::operator==(const arithmetic &in) const {
 	}
 }
 
+/*
+ * Not equal to
+ *
+ * Returns true if *this not equal to in, or false otherwise.
+ */
 bool arithmetic::operator!=(const arithmetic &in) const {
 	int comp = compare(*this, in);
 	if (comp != 0) {
@@ -679,22 +997,35 @@ bool arithmetic::operator!=(const arithmetic &in) const {
 	}
 }
 
+/*
+ * Exponentation
+ *
+ * Returns an object corresponding to *this raised to the power of exp.
+ * The returned arithmetic object size will be the minimum needed to represent the exponentiation result.
+ */
 arithmetic arithmetic::pow(const arithmetic exp) const {
+	arithmetic one = arithmetic("1");
+	arithmetic temp = *this;
+
 	if (!exp) {
-		return arithmetic("1");
-	} else if(!exp.sign()) {
+		return one;
+	} else if (!exp.sign() && temp.abs() > one){
 		return arithmetic();
 	}
-
-	arithmetic temp = *this;
-	arithmetic expTemp = exp - arithmetic("1");
+	
+	arithmetic expTemp = exp.abs() - one;
 	while (!(!expTemp)) {
 		temp*=(*this);
-		expTemp -= arithmetic("1");
+		expTemp -= one;
 	}
 	return temp;
 }
 
+/*
+ * Logical NOT
+ *
+ * Returns true if the object magnitude is non-0, or false otherwise.
+ */
 bool arithmetic::operator!() const {
 	unsigned int bitMask = 128;
 	size_t byteInd = 0;
@@ -713,20 +1044,220 @@ bool arithmetic::operator!() const {
 	return true;;
 }
 
+/*
+ * Logical OR
+ *
+ * Returns true if either *this or in is non-0, or false otherwise.
+ */
+bool arithmetic::operator||(const arithmetic &in) const {
+	return (!(!*this) || !(!in));
+}
+
+/*
+ * Logical AND
+ *
+ * Returns true if *this and in are non-0, or false otherwise.
+ */
+bool arithmetic::operator&&(const arithmetic &in) const { 
+	return (!(!*this) && !(!in));
+}
+
+/*
+ * Bitwise NOT
+ *
+ * Returns an arithemtic object corresponding to every *this bit being inverted.
+ */
+arithmetic arithmetic::operator~() const {
+	arithmetic ret = *this;
+	for (size_t i = 0; i < this->getSize(); ++i) {
+		unsigned char temp = this->buf[i];
+		ret.buf[i] = ~temp;
+	}
+	return ret;
+}
+
+/*
+ * Bitwise AND
+ *
+ * Returns an arithemtic object corresponding to the bitwise AND between *this and in.
+ * The returned object size will be the larger of either *this or in.
+ */
+arithmetic arithmetic::operator&(const arithmetic &in) const {
+	arithmetic tempIn = in;
+	arithmetic tempSelf = *this;
+
+	if (tempSelf.getSize() < tempIn.getSize()) {
+		tempSelf.grow(tempIn.getSize());
+	} else if (tempIn.getSize() < tempSelf.getSize()) {
+		tempIn.grow(tempSelf.getSize());
+	}
+
+	for (size_t i = 0; i < tempSelf.getSize(); ++i) {
+		tempSelf.buf[i] &= tempIn.buf[i];
+	}
+	return tempSelf;
+}
+
+/*
+ * Bitwise AND assignment
+ *
+ * Sets *this to the bitwise AND between *this and in.
+ * The modified object size will be the larger of either *this or in.
+ */
+arithmetic& arithmetic::operator&=(const arithmetic &in) {
+	arithmetic tempIn = in;
+
+	if (this->getSize() < tempIn.getSize()) {
+		this->grow(tempIn.getSize());
+	} else if (tempIn.getSize() < this->getSize()) {
+		tempIn.grow(this->getSize());
+	}
+
+	for (size_t i = 0; i < this->getSize(); ++i) {
+		this->buf[i] &= tempIn.buf[i];
+	}
+	return *this;
+}
+
+
+/*
+ * Bitwise OR
+ *
+ * Returns an arithemtic object corresponding to the bitwise OR between *this and in.
+ * The returned object size will be the larger of either *this or in.
+ */
+arithmetic arithmetic::operator|(const arithmetic &in) const {
+	arithmetic tempIn = in;
+	arithmetic tempSelf = *this;
+
+	if (tempSelf.getSize() < tempIn.getSize()) {
+		tempSelf.grow(tempIn.getSize());
+	} else if (tempIn.getSize() < tempSelf.getSize()) {
+		tempIn.grow(tempSelf.getSize());
+	}
+
+	for (size_t i = 0; i < tempSelf.getSize(); ++i) {
+		tempSelf.buf[i] |= tempIn.buf[i];
+	}
+	return tempSelf;
+}
+
+/*
+ * Bitwise OR assignment
+ *
+ * Sets *this to the bitwise OR between *this and in.
+ * The modified object size will be the larger of either *this or in.
+ */
+arithmetic& arithmetic::operator|=(const arithmetic &in) {
+	arithmetic tempIn = in;
+
+	if (this->getSize() < tempIn.getSize()) {
+		this->grow(tempIn.getSize());
+	} else if (tempIn.getSize() < this->getSize()) {
+		tempIn.grow(this->getSize());
+	}
+
+	for (size_t i = 0; i < this->getSize(); ++i) {
+		this->buf[i] |= tempIn.buf[i];
+	}
+	return *this;
+}
+
+/*
+ * Returns the size of the buffer used to hold the magnitude of *this
+ */
 size_t arithmetic::getSize() const {
 	return size;
 }
 
+/*
+ * Returns true if the value is positive, or false if the value is negative.
+ *
+ * The value of 0 is defined as being positive.
+ */
 bool arithmetic::sign() const {
 	return !negative;
 }
 
+/*
+ * Returns a string containing the decimal equivalent of the artithmetic object.
+ *
+ * A "-" will preceed the string if the object is negative.
+ */
+std::string arithmetic::str() const {
+	bool negative = !this->sign();
+	arithmetic temp = this->abs();
+	arithmetic ten("10");
+	std::string str;
+	if (!temp) {
+		str.push_back('0');
+		return str;
+	}
+	if (!(this->sign())) {
+		str.push_back('-');
+	}
+	while (!(!temp)){
+		arithmetic remainder = temp - (temp/ten)*ten;
+		char remainderChar = remainder.buf[remainder.getSize()-1] + 48;
+		if (negative) {
+			str.insert(str.begin()+1, remainderChar);
+		} else {
+			str.insert(str.begin(), remainderChar);
+		}
+		temp/=ten;
+	}
+
+	return str;  
+}
+
+/*
+ * Returns a string containing the binary representation of the magnitude of the artithmetic object.
+ */
+std::string arithmetic::bin() const {
+	std::stringstream ret;
+	for (int i = 0; i<this->getSize(); i++) {
+		ret << (std::bitset<8>(this->buf[i]));
+	}
+	return ret.str();
+}
+
+/*
+ * Returns the absolute value of the arithmetic object.
+ */
 arithmetic arithmetic::abs() const {
 	arithmetic temp = *this;
 	temp.negative = false;
 	return temp;
 }
 
+/*
+ * Sets the arithmetic object to the provided string.
+ *
+ * PRECONDITIONS:
+ * 	the string must only contain decimal numbers, except for the first character 
+ *		which may be a '-' sign indicating the value is negative.
+ */
+void arithmetic::set(std::string str) {
+	delete[] this->buf;
+
+	if (str.front() == '-') {
+		negative = true;
+		str.erase(0,1);
+	} else {
+		negative = false;
+	}
+
+	size_t requiredBufSize = (floor(str.length()*log2(10))+1)/8.0 + 1;
+
+	buf = new unsigned char[requiredBufSize]();
+	size = requiredBufSize;
+	stringToBinary(str.c_str(), buf, requiredBufSize);
+	shrink();
+}
+
+/*
+ * Private function used to grow the buffer holding the magnitude of the binary number.
+ */ 
 void arithmetic::grow(size_t newSize) {
 	unsigned char *oldBuf = buf;
 
@@ -738,6 +1269,9 @@ void arithmetic::grow(size_t newSize) {
 	delete[] oldBuf;
 }
 
+/*
+ * Private function used to shrink the object buffer to the	minimum size needed to represent the stored number.
+ */ 
 void arithmetic::shrink() {
 	unsigned char *oldBuf = buf;
 
@@ -763,9 +1297,14 @@ void arithmetic::shrink() {
 	delete[] oldBuf;
 }
 
+/*
+ * Stream inserter
+ *
+ * Writes the decimal equivalent of the binary number to the provided stream.
+ * A "-" will preceed the string if the object is negative.
+ * 
+ */
 std::ostream& operator<<(std::ostream& outStream, const arithmetic &in) {
-	for (int i = 0; i<in.size; i++) {
-		outStream<<std::bitset<8>(in.buf[i]);
-	}
+	outStream<<in.str();
 	return outStream;
 }
