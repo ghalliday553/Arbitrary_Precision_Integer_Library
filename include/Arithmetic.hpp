@@ -1,14 +1,4 @@
-#include <stddef.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdio.h>
-#include <sstream> 
-#include <stdlib.h>
-#include <queue>
-#include <cmath>
-#include <ios>
-#include <iomanip> 
-#include <iostream>
+#include <sstream>
 
 /*
  * Class providing arbitrary-precision integer functionality.
