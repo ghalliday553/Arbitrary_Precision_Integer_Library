@@ -10,6 +10,11 @@
 #include <iomanip> 
 #include <iostream>
 
+/*
+ * Class providing arbitrary-precision integer functionality.
+ *
+ * Class member functions may throw std::bad_alloc if insufficient memory is available.
+ */
 class arithmetic {
 public:
 	// CONSTRUCTORS

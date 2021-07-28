@@ -5,6 +5,8 @@
 #include <set>
 
 #define INVALID_OPERATION "INVALID OPERATION\n"
+#define INSUFFICIENT_MEMORY "INSUFFICIENT MEMORY\n"
+#define UNSPECIFIED_ERROR "UNSPECIFIED ERROR\n"
 
 /*
  * Tests if str is a decimal string.
@@ -44,17 +46,36 @@ bool isNumber(std::string str) {
  * PRECONDITIONS:
  *	- operand1 must be a decimal string.
  */
-std::string perform1Op(std::string operand1, std::string op) {
-	arithmetic ar1(operand1);
-	arithmetic res;
+std::string performOp1(std::string operand1, std::string op) {
+	try {
+		arithmetic ar1(operand1);
+		arithmetic res;
 
-	char cOp[3];
-	strcpy(cOp, op.c_str());
+		char cOp[3];
+		strcpy(cOp, op.c_str());
 
-	if(!strcmp(cOp,"~")) {
-		res = ~ar1;
+		if(!strcmp(cOp,"~")) {
+			res = ~ar1;
+		} else if(!strcmp(cOp,"++")) {
+			res = ++ar1;
+		} else if(!strcmp(cOp,"--")) {
+			res = --ar1;
+		} else if(!strcmp(cOp,"!")) {
+			if (!ar1) {
+				return std::string("1");
+			} else {
+				return std::string("0");
+			}
+		}
+
+		return res.str();
+	} catch (std::bad_alloc e) {
+		std::cout<<INSUFFICIENT_MEMORY;
+		exit(0); 
+	} catch (...) {
+		std::cout<<UNSPECIFIED_ERROR;
+		exit(0);
 	}
-	return res.str();
 }
 
 /*
@@ -71,91 +92,101 @@ std::string perform1Op(std::string operand1, std::string op) {
  * PRECONDITIONS:
  *	- operand1 and operand2 must be decimal strings.
  */
-std::string perform2Op(std::string operand1, std::string operand2, std::string op) {
-	arithmetic ar1(operand1);
-	arithmetic ar2(operand2);
-	arithmetic res;
+std::string performOp2(std::string operand1, std::string operand2, std::string op) {
+	try {
+		arithmetic ar1(operand1);
+		arithmetic ar2(operand2);
+		arithmetic res;
 
-	char cOp[3];
-	strcpy(cOp, op.c_str());
-	
-	if(!strcmp(cOp,"+")) {
-		res = ar1 + ar2;
-	} else if(!strcmp(cOp,"-")) {
-		res = ar1 - ar2;
-	} else if(!strcmp(cOp,"*")) {
-		res = ar1 * ar2;
-	} else if(!strcmp(cOp,"/")) {
-		res = ar1 / ar2;
-	} else if(!strcmp(cOp,"%")) {
-		res = ar1 % ar2;
-	} else if(!strcmp(cOp,"^")) {
-		res = ar1.pow(ar2);
-	} else if(!strcmp(cOp,"<<")) {
-		res = ar1 << ar2;
-	} else if(!strcmp(cOp,">>")) {
-		res = ar1 >> ar2;
-	} else if(!strcmp(cOp,"&")) {
-		res = ar1 & ar2;
-	} else if(!strcmp(cOp,"|")) {
-		res = ar1 | ar2;
-	} else if (!strcmp(cOp,"&&")) {
-		if (ar1 && ar2) {
-			return std::string("1");
-		} else {
-			return std::string("0");
+		char cOp[3];
+		strcpy(cOp, op.c_str());
+		
+		if(!strcmp(cOp,"+")) {
+			res = ar1 + ar2;
+		} else if(!strcmp(cOp,"-")) {
+			res = ar1 - ar2;
+		} else if(!strcmp(cOp,"*")) {
+			res = ar1 * ar2;
+		} else if(!strcmp(cOp,"/")) {
+			res = ar1 / ar2;
+		} else if(!strcmp(cOp,"%")) {
+			res = ar1 % ar2;
+		} else if(!strcmp(cOp,"^")) {
+			res = ar1.pow(ar2);
+		} else if(!strcmp(cOp,"<<")) {
+			res = ar1 << ar2;
+		} else if(!strcmp(cOp,">>")) {
+			res = ar1 >> ar2;
+		} else if(!strcmp(cOp,"&")) {
+			res = ar1 & ar2;
+		} else if(!strcmp(cOp,"|")) {
+			res = ar1 | ar2;
+		} else if (!strcmp(cOp,"&&")) {
+			if (ar1 && ar2) {
+				return std::string("1");
+			} else {
+				return std::string("0");
+			}
+		} else if (!strcmp(cOp,"||")) {
+			if (ar1 || ar2) {
+				return std::string("1");
+			} else {
+				return std::string("0");
+			}
+		} else if (!strcmp(cOp,">")) {
+			if (ar1 > ar2) {
+				return std::string("1");
+			} else {
+				return std::string("0");
+			}
+		} else if(!strcmp(cOp,">=")) {
+			if (ar1 >= ar2) {
+				return std::string("1");
+			} else {
+				return std::string("0");
+			}
+		} else if(!strcmp(cOp,"<")) {
+			if (ar1 < ar2) {
+				return std::string("1");
+			} else {
+				return std::string("0");
+			}
+		} else if(!strcmp(cOp,"<=")) {
+			if (ar1 <= ar2) {
+				return std::string("1");
+			} else {
+				return std::string("0");
+			}
+		} else if(!strcmp(cOp,"==")) {
+			if (ar1 == ar2) {
+				return std::string("1");
+			} else {
+				return std::string("0");
+			}
+		} else if(!strcmp(cOp,"!=")) {
+			if (ar1 != ar2) {
+				return std::string("1");
+			} else {
+				return std::string("0");
+			}
 		}
-	} else if (!strcmp(cOp,"||")) {
-		if (ar1 || ar2) {
-			return std::string("1");
-		} else {
-			return std::string("0");
-		}
-	} else if (!strcmp(cOp,">")) {
-		if (ar1 > ar2) {
-			return std::string("1");
-		} else {
-			return std::string("0");
-		}
-	} else if(!strcmp(cOp,">=")) {
-		if (ar1 >= ar2) {
-			return std::string("1");
-		} else {
-			return std::string("0");
-		}
-	} else if(!strcmp(cOp,"<")) {
-		if (ar1 < ar2) {
-			return std::string("1");
-		} else {
-			return std::string("0");
-		}
-	} else if(!strcmp(cOp,">=")) {
-		if (ar1 >= ar2) {
-			return std::string("1");
-		} else {
-			return std::string("0");
-		}
-	} else if(!strcmp(cOp,"==")) {
-		if (ar1 == ar2) {
-			return std::string("1");
-		} else {
-			return std::string("0");
-		}
-	} else if(!strcmp(cOp,"!=")) {
-		if (ar1 != ar2) {
-			return std::string("1");
-		} else {
-			return std::string("0");
-		}
+
+		return res.str();
+	} catch (std::bad_alloc e) {
+		std::cout<<INSUFFICIENT_MEMORY;
+		exit(0);
+	} catch (...) {
+		std::cout<<UNSPECIFIED_ERROR;
+		exit(0);
 	}
-	return res.str();
 }
 
 int main(void) {
 	std::string str;
 	std::stack<std::string> opStack;
-	std::set<std::string> opSet = {"+", "-", "*", "/", "%", "^",
-		"<<", ">>", "~" , "&", "|", "&&", "||", ">", ">=", "<", "<=", "==", "!="};
+	std::set<std::string> opSet2 = {"+", "-", "*", "/", "%", "^",
+		"<<", ">>", "&", "|", "&&", "||", ">", ">=", "<", "<=", "==", "!="};
+	std::set<std::string> opSet1 = {"++", "--", "~", "!"};
 
 	// Loop forever
 	while(1) {
@@ -177,9 +208,9 @@ int main(void) {
 	        	}
 	        	opStack.push(tempStr);
 	        // Check if parsed string is an operator
-	        } else if (opSet.find(tempStr) != opSet.end()) {
+	        } else if (opSet2.find(tempStr) != opSet2.end() || opSet1.find(tempStr) != opSet1.end()) {
 	        	// Validate that the correct number of decimal numbers are on the stack.
-	        	if (!strcmp(tempStr.c_str(),"~")) {
+	        	if (opSet1.find(tempStr) != opSet1.end()) {
 	        		if (opStack.size() != 1) {
 	        			std::cout<<INVALID_OPERATION;
 	        			return 0;
@@ -191,18 +222,18 @@ int main(void) {
 	        		}
 	        	}
 
-	        	// Perform either a 1Op or 2Op depending on the operator
+	        	// Perform operation with the appropriate number of operands
 	        	std::string res;
 	        	if (opStack.size() == 2) {
 	        		std::string operand2 = opStack.top();
 		        	opStack.pop();
 		        	std::string operand1 = opStack.top();
 		        	opStack.pop();
-		        	res = perform2Op(operand1, operand2, tempStr);
+		        	res = performOp2(operand1, operand2, tempStr);
 	        	} else if (opStack.size() == 1) {
 	        		std::string operand1 = opStack.top();
 		        	opStack.pop();
-		        	res = perform1Op(operand1, tempStr);
+		        	res = performOp1(operand1, tempStr);
 	        	} else {
 	        		// Shouldnt happen
 	        		std::cout<<INVALID_OPERATION;

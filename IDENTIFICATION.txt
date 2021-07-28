@@ -1,0 +1,7 @@
+name "Grayson Halliday"
+student_id "V00840163"
+email "graysonhalliday@gmail.com"
+term "2021-05"
+course "SENG475"
+section "T01"
+assignment "cpp_project"
