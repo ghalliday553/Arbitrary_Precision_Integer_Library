@@ -1,6 +1,7 @@
 #include <bitset>
 #include <queue>
 #include <cmath>
+#include <cstring>
 #include <Arithmetic.hpp>
 
 /*
