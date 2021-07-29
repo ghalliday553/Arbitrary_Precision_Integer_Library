@@ -29,3 +29,10 @@ Usage of any unsupported operators or using the incorrect number of operands wil
 Notes:
 - All bitwise operations will equivalent to that of a twos-compliment system
 - All logical operators will produce either a value of "1" or "0"
+
+DEMO:
+
+demo.py contains a series of tests used to display and validate the calculator.
+
+Notes:
+- demo.py must be ran using python3
