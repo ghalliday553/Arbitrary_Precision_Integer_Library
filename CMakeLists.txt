@@ -14,4 +14,4 @@ set_property(TARGET ap_calculator PROPERTY CXX_STANDARD 20)
 
 install(TARGETS ap_calculator DESTINATION bin)
 
-install(PROGRAMS demo.py DESTINATION bin)
+install(PROGRAMS demo DESTINATION bin)
