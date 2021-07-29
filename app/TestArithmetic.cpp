@@ -6,17 +6,6 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-TEST_CASE("INITIAL TESTS") {
-	/*
-	printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
-	printf("expected is %s\n", ref.str().c_str());
-	printf("output is %s\n", output.str().c_str());
-	printf("outputCompound is %s\n", outputCompound.str().c_str());
-	
-	REQUIRE(!strcmp(output.str().c_str(), ref.str().c_str()));
-	*/
-}
-
 TEST_CASE("StringToBinary") {
 	int i = -1000;
 	while(i < 1000) {
