@@ -17,16 +17,16 @@ public:
 	arithmetic();
 
 	/*
+	 * Copy constructor
+	 */
+	arithmetic(const arithmetic &in);
+
+	/*
 	 * Constructor accepting a decimal string.
 	 *
 	 * PRECONDITIONS:
 	 *	- The string must only contain decimal numbers, except for the first character 
 	 *		which may be a '-' sign indicating the value is negative.
-	 */
-	arithmetic(const arithmetic &in);
-
-	/*
-	 * Copy constructor
 	 */
 	arithmetic(std::string str);
 
@@ -74,7 +74,7 @@ public:
 	 *
 	 * The returned object size will be the minimum needed to represent the addition result.
 	 */
-	arithmetic operator+(arithmetic in) const;
+	arithmetic operator+(const arithmetic &in) const;
 
 	/*
 	 * Pre-increment.
@@ -102,7 +102,7 @@ public:
 	 *
 	 * The returned object size will be the minimum needed to represent the subtraction result.
 	 */
-	arithmetic operator-(arithmetic in) const;
+	arithmetic operator-(const arithmetic &in) const;
 
 	/*
 	 * Pre-decrement.
@@ -130,7 +130,7 @@ public:
 	 *
 	 * The returned arithmetic object size will be the minimum needed to represent the multiplication result.
 	 */
-	arithmetic operator*(arithmetic in) const;
+	arithmetic operator*(const arithmetic &in) const;
 
 	/*
 	 * Compound division.
@@ -146,7 +146,7 @@ public:
 	 * The result of a division by 0 is defined as 0.
 	 * The returned arithmetic object size will be the minimum needed to represent the division result.
 	 */
-	arithmetic operator/(arithmetic in) const;
+	arithmetic operator/(const arithmetic &in) const;
 
 	/*
 	 * Modulus
@@ -175,7 +175,7 @@ public:
 	/*
 	 * Left shift
 	 */ 
-	arithmetic operator<<(arithmetic shiftAmount);
+	arithmetic operator<<(arithmetic shiftAmount) const;
 
 	/*
 	 * Right shift
@@ -189,7 +189,7 @@ public:
 	 * 
 	 * The modified object will be equivalent to a right shift operation on a two's-compliment value.
 	 */
-	arithmetic operator>>(arithmetic shiftAmount);
+	arithmetic operator>>(arithmetic shiftAmount) const;
 
 
 	// COMPARISONS

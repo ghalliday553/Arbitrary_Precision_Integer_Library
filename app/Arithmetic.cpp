@@ -656,7 +656,7 @@ arithmetic& arithmetic::operator+=(const arithmetic &in) {
  *
  * The returned object size will be the minimum needed to represent the addition result.
  */
-arithmetic arithmetic::operator+(arithmetic in) const {
+arithmetic arithmetic::operator+(const arithmetic &in) const {
 	arithmetic temp = *this;
 	arithmetic res;
 	if (temp.sign() != in.sign()){
@@ -727,7 +727,7 @@ arithmetic& arithmetic::operator-=(const arithmetic &in) {
  *
  * The returned object size will be the minimum needed to represent the subtraction result.
  */
-arithmetic arithmetic::operator-(arithmetic in) const {
+arithmetic arithmetic::operator-(const arithmetic &in) const {
 	arithmetic temp = *this;
 	arithmetic res;
 	if (temp.sign() == in.sign()){
@@ -791,7 +791,7 @@ arithmetic& arithmetic::operator*=(const arithmetic &in) {
  *
  * The returned arithmetic object size will be the minimum needed to represent the multiplication result.
  */
-arithmetic arithmetic::operator*(arithmetic in) const {
+arithmetic arithmetic::operator*(const arithmetic &in) const {
 	arithmetic temp = mult(this->abs(), in);
 	if(!temp) {
 		temp.negative = false;
@@ -825,7 +825,7 @@ arithmetic& arithmetic::operator/=(const arithmetic &in) {
  * The result of a division by 0 is defined as 0.
  * The returned arithmetic object size will be the minimum needed to represent the division result.
  */
-arithmetic arithmetic::operator/(arithmetic in) const{
+arithmetic arithmetic::operator/(const arithmetic &in) const{
 	arithmetic temp = div(this->abs(), in.abs());
 	if(!temp) {
 		temp.negative = false;
@@ -863,7 +863,7 @@ arithmetic& arithmetic::operator<<=(arithmetic shiftAmount) {
 /*
  * Left shift
  */ 
-arithmetic arithmetic::operator<<(arithmetic shiftAmount) {
+arithmetic arithmetic::operator<<(arithmetic shiftAmount) const {
 	arithmetic temp = *this;
 	for(; !(!shiftAmount); --shiftAmount) {
 		shiftLeft(temp);
@@ -876,7 +876,7 @@ arithmetic arithmetic::operator<<(arithmetic shiftAmount) {
  * 
  * The returned object will be equivalent to a right shift operation on a two's-compliment value.
  */
-arithmetic arithmetic::operator>>(arithmetic shiftAmount) {
+arithmetic arithmetic::operator>>(arithmetic shiftAmount) const {
 	arithmetic temp = *this;
 	bool remainderFlag = false;
 
