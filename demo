@@ -1,16 +1,15 @@
 import subprocess
 import os
 
-initialDir = os.path.dirname(os.path.realpath(__file__))
+initialDir = os.path.dirname(os.path.abspath(__file__))
 cmd = os.path.join(initialDir, "ap_calculator");
 
 # Due to limitations for communicate(), a new subprocess must be created for each input
 def runComp(comp, expected):
 	proc = subprocess.Popen([cmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	ret = proc.communicate(input=bytes(comp + "\n", 'utf-8'))
+	ret = proc.communicate(input=bytes(comp + "\n"))
 	answer = str(ret[0].decode('utf-8'))
 	print(comp + " -> " + answer)
-	proc.kill()
 	if (answer != (expected + "\n")):
 		print("FAILED TEST")
 		exit()

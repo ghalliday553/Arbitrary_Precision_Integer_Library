@@ -2,11 +2,27 @@
 Arbitrary-Precision Integer Calculator
 --------------------------------------
 
+To demonstrate the use of the developed arbitrary-precision integer library, a reverse-polish calculator has been provided.
+
+Some library functions are not applicable to a calculator, and therefore have not been included within the calculator's list of supported operations. These commands includes:
+- Pre increment/decrement
+- getSize()
+- sign()
+- abs()
+- bin()
+- set()
+
+Validation of these commands can instead be accomplished through the /app/TestArithmetic.cpp file, which makes use of the Catch2 library. To compile the validation program, uncomment the appropriate lines within CMakeLists.txt.
+
+Note that the full test suite requires a substantial amount of time to complete. Therefore, it is recommended to test individual Catch2 test cases.
+
+
+
 USAGE:
 
 The calculator uses the reverse polish notation and accepts a string of arguments through the standard input
 consisting of both operators and operands, separated by spaces. Intermediate operation results will be used as an
-operand for the following operation, whereas the final operation result will be written to the standard output.
+operand for the following operation, and the final operation result will be written to the standard output.
 
 An example is as follows:
 
@@ -14,6 +30,9 @@ An example is as follows:
 
 The calculator will compute the first intermediate result of <operand_1> and <operand_2> through the application of
 <operator_1> and use the result within the next calculation involving <operand_3> and <operator_2>.
+
+
+
 
 INPUT:
 
@@ -27,12 +46,14 @@ Usage of any unsupported operators or using the incorrect number of operands wil
 "INVALID OPERATION" message.
 
 Notes:
-- All bitwise operations will equivalent to that of a twos-compliment system
-- All logical operators will produce either a value of "1" or "0"
+- All bitwise operations will be equivalent to that of a twos-compliment system.
+- All logical operators will produce either a value of "1" or "0".
+
+
+
 
 DEMO:
 
-demo.py contains a series of tests used to display and validate the calculator.
+The demo python program contains a series of tests used to display and validate example calculator inputs.
 
-Notes:
-- demo.py must be ran using python3
+

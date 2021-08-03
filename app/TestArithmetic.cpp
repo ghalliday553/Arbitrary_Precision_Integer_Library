@@ -62,17 +62,6 @@ TEST_CASE("Addition") {
 		operand2 = -1000;
 		++operand1;
 	}
-	/*
-	operand1 = 1;
-	operand2 = UINT_MAX;
-
-	arithmetic ar3(std::to_string(operand1).c_str());
-	arithmetic ar4(std::to_string(operand2).c_str());
-	ar3+=ar4;
-
-	std::cout<<"MAX IS: "<<ar4<<"\n";
-	std::cout<<"ONE PAST MAX IS: "<<ar3<<"\n";
-	*/
 	printf("PASSED ADDITION CASES \n");
 }
 
@@ -391,7 +380,7 @@ TEST_CASE("Str") {
 	printf("PASSED STR CASES \n");
 }
 
-TEST_CASE("IncDec") {
+TEST_CASE("IncrementDecrement") {
 	int operand1 = -1000;
 	int incExpected = 0;
 	int decExpected = 0;

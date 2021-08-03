@@ -190,8 +190,7 @@ int main(void) {
 	std::set<std::string> opSet1 = {"++", "--", "~", "!"};
 
 	// Loop forever
-	while(1) {
-		std::getline(std::cin, str);
+	while(std::getline(std::cin, str)) {
 
 		// Parse line for operands and operators
 		size_t pos = str.find(" ");
