@@ -851,7 +851,7 @@ arithmetic arithmetic::operator%(const arithmetic &in) const {
 /*
  * Left shift assignment
  *
- * The returned arithmetic object size will be the minimum needed to represent the modulus result.
+ * The modified arithmetic object size will be the minimum needed to represent the modulus result.
  */
 arithmetic& arithmetic::operator<<=(arithmetic shiftAmount) {
 	for(; !(!shiftAmount); --shiftAmount) {
@@ -862,7 +862,9 @@ arithmetic& arithmetic::operator<<=(arithmetic shiftAmount) {
 
 /*
  * Left shift
- */ 
+ *
+ * The returned arithmetic object size will be the minimum needed to represent the division result.
+ */  
 arithmetic arithmetic::operator<<(arithmetic shiftAmount) const {
 	arithmetic temp = *this;
 	for(; !(!shiftAmount); --shiftAmount) {
@@ -874,7 +876,7 @@ arithmetic arithmetic::operator<<(arithmetic shiftAmount) const {
 /*
  * Right shift
  * 
- * The returned object will be equivalent to a right shift operation on a two's-compliment value.
+ * The returned object will be equivalent to a right shift operation on a two's-compliment system.
  */
 arithmetic arithmetic::operator>>(arithmetic shiftAmount) const {
 	arithmetic temp = *this;
@@ -898,7 +900,7 @@ arithmetic arithmetic::operator>>(arithmetic shiftAmount) const {
 /*
  * Right shift assignment
  * 
- * The modified object will be equivalent to a right shift operation on a two's-compliment value.
+ * The modified object will be equivalent to a right shift operation on a two's-compliment system.
  */
 arithmetic& arithmetic::operator>>=(arithmetic shiftAmount) {
 	bool remainderFlag = false;

@@ -168,26 +168,28 @@ public:
 	/*
 	 * Left shift assignment
 	 *
-	 * The returned arithmetic object size will be the minimum needed to represent the modulus result.
+	 * The modified arithmetic object size will be the minimum needed to represent the modulus result.
 	 */
 	arithmetic& operator<<=(arithmetic shiftAmount);
 
 	/*
 	 * Left shift
+	 *
+	 * The returned arithmetic object size will be the minimum needed to represent the division result.
 	 */ 
 	arithmetic operator<<(arithmetic shiftAmount) const;
 
 	/*
 	 * Right shift
 	 * 
-	 * The returned object will be equivalent to a right shift operation on a two's-compliment value.
+	 * The returned object will be equivalent to a right shift operation on a two's-compliment system.
 	 */
 	arithmetic& operator>>=(arithmetic shiftAmount);
 
 	/*
 	 * Right shift assignment
 	 * 
-	 * The modified object will be equivalent to a right shift operation on a two's-compliment value.
+	 * The modified object will be equivalent to a right shift operation on a two's-compliment system.
 	 */
 	arithmetic operator>>(arithmetic shiftAmount) const;
 
