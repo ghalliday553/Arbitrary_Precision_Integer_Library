@@ -7,19 +7,23 @@
 #include <catch2/catch.hpp>
 
 TEST_CASE("StringToBinary") {
+	// Test value
 	int i = -1000;
+
 	while(i < 1000) {
 		int absolute = abs(i);
 		arithmetic ar(std::to_string(i));
-		std::string ref;
+		std::string expected;
 
+		// Generate string of bits corresponding to "abolute"'s magnitude
 		const char* beg = reinterpret_cast<const char*>(&absolute);
 		for (size_t ind = ar.getSize()-1; ind > 0; --ind) {
-			ref = ref + std::bitset<8>(beg[ind]).to_string();
+			expected = expected + std::bitset<8>(beg[ind]).to_string();
 		}
-		ref = ref + std::bitset<8>(beg[0]).to_string();
+		expected = expected + std::bitset<8>(beg[0]).to_string();
 
-		REQUIRE(ar.bin() == ref);
+		// Validate
+		REQUIRE(ar.bin() == expected);
 		if(i >= 0) {
 			REQUIRE(ar.sign() == true);
 		} else {
@@ -32,7 +36,6 @@ TEST_CASE("StringToBinary") {
 }
 
 TEST_CASE("Addition") {
-
 	int operand1 = -1000;
 	int operand2 = -1000;
 	int expected = 0;
@@ -211,6 +214,7 @@ TEST_CASE("Comparisons") {
 				printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
 			}
 
+			// Generate array of expected values for each supported comparison operation
 			bool expected[] = {false, false, false, false, false, false};
 			for(int i = 0; i<6; i++) {
 				switch(i) {
@@ -226,6 +230,7 @@ TEST_CASE("Comparisons") {
 			arithmetic ar1 = (std::to_string(operand1));
 			arithmetic ar2 = (std::to_string(operand2));
 			
+			// Perform comparison operations on arbitrary precision objects
 			bool output[] = {false, false, false, false, false, false};
 			for(int i = 0; i<6; i++) {
 				switch(i) {
@@ -238,6 +243,7 @@ TEST_CASE("Comparisons") {
 				}
 			}
 			
+			// Validate arrays are equivalent
 			for(int i = 0; i<6; i++) {
 				REQUIRE(output[i] == expected[i]);
 			}
@@ -450,13 +456,15 @@ TEST_CASE("Bitwise") {
 	while(operand1 <= 1000) {
 		while(operand2 <= 1000) {
 			
-			arithmetic andRef(std::to_string(operand1 & operand2));
-			arithmetic orRef(std::to_string(operand1 | operand2));
-			arithmetic notRef(std::to_string(~operand1));
+			// Expected values
+			arithmetic andExpected(std::to_string(operand1 & operand2));
+			arithmetic orExpected(std::to_string(operand1 | operand2));
+			arithmetic notExpected(std::to_string(~operand1));
 
 			arithmetic ar1 = std::to_string(operand1);
 			arithmetic ar2 = std::to_string(operand2);
 
+			// Output values
 			arithmetic notOutput = ~ar1;
 			arithmetic orOutput = ar1 | ar2;
 			arithmetic andOutput = ar1 & ar2;
@@ -465,47 +473,57 @@ TEST_CASE("Bitwise") {
 				printf("operand1 is %i | operand2 is %i\n", operand1, operand2);
 			}
 
+			// Get NOT binary strings
 			std::string notOutputBin = notOutput.bin();
-			std::string notRefBin = notRef.bin();
-			notRefBin = notRefBin.substr(notRefBin.size()-notOutputBin.size(), notOutputBin.size());
+			std::string notExpectedBin = notExpected.bin();
 
+			// Crop expected length to match string length of output
+			notExpectedBin = notExpectedBin.substr(notExpectedBin.size()-notOutputBin.size(), notOutputBin.size());
+
+			// Get AND binary strings
 			std::string andOutputBin = andOutput.bin();
-			std::string andRefBin = andRef.bin();
-			if (andRefBin.size() > andOutputBin.size()) {
-				andRefBin = andRefBin.substr(andRefBin.size()-andOutputBin.size(), andOutputBin.size());
+			std::string andExpectedBin = andExpected.bin();
+
+			// Make the expected and output string lengths equal
+			if (andExpectedBin.size() > andOutputBin.size()) {
+				andExpectedBin = andExpectedBin.substr(andExpectedBin.size()-andOutputBin.size(), andOutputBin.size());
 			} else {
-				andOutputBin = andOutputBin.substr(andOutputBin.size()-andRefBin.size(), andRefBin.size());
+				andOutputBin = andOutputBin.substr(andOutputBin.size()-andExpectedBin.size(), andExpectedBin.size());
 			}
 
+			// Get OR binary strings
 			std::string orOutputBin = orOutput.bin();
-			std::string orRefBin = orRef.bin();
-			if (orRefBin.size() > orOutputBin.size()) {
-				orRefBin = orRefBin.substr(orRefBin.size()-orOutputBin.size(), orOutputBin.size());
+			std::string orExpectedBin = orExpected.bin();
+
+			// Make the expected and output string lengths equal
+			if (orExpectedBin.size() > orOutputBin.size()) {
+				orExpectedBin = orExpectedBin.substr(orExpectedBin.size()-orOutputBin.size(), orOutputBin.size());
 			} else {
-				orOutputBin = orOutputBin.substr(orOutputBin.size()-orRefBin.size(), orRefBin.size());
+				orOutputBin = orOutputBin.substr(orOutputBin.size()-orExpectedBin.size(), orExpectedBin.size());
 			}
 			
-			REQUIRE(notRefBin == notOutputBin);
-			REQUIRE(andRefBin == andOutputBin);
-			REQUIRE(orRefBin == orOutputBin);
+			// Validate non-assignment bitwise operations
+			REQUIRE(notExpectedBin == notOutputBin);
+			REQUIRE(andExpectedBin == andOutputBin);
+			REQUIRE(orExpectedBin == orOutputBin);
 
+			// Validate assignment bitwise operations
 			ar1 &= ar2;
 			std::string ar1Bin = ar1.bin();
-			if (andRefBin.size() < ar1Bin.size()) {
-				ar1Bin = ar1Bin.substr(ar1Bin.size()-andRefBin.size(), andRefBin.size());
+			if (andExpectedBin.size() < ar1Bin.size()) {
+				ar1Bin = ar1Bin.substr(ar1Bin.size()-andExpectedBin.size(), andExpectedBin.size());
 			}
-			REQUIRE(ar1Bin == andRefBin);
+			REQUIRE(ar1Bin == andExpectedBin);
 			ar1 = arithmetic(std::to_string(operand1));
 
 			ar1 |= ar2;
 			ar1Bin = ar1.bin();
-			if (andRefBin.size() < ar1Bin.size()) {
-				ar1Bin = ar1Bin.substr(ar1Bin.size()-orRefBin.size(), orRefBin.size());
+			if (andExpectedBin.size() < ar1Bin.size()) {
+				ar1Bin = ar1Bin.substr(ar1Bin.size()-orExpectedBin.size(), orExpectedBin.size());
 			}
-			REQUIRE(ar1Bin == orRefBin);
+			REQUIRE(ar1Bin == orExpectedBin);
 
 			++operand2;
-
 		}
 
 		operand2 = 0;
@@ -521,12 +539,12 @@ TEST_CASE("Bin") {
 	while(operand1 <= 1000) {
 		arithmetic ar1 = (std::to_string(operand1));
 		
-		std::string ref = std::bitset<16>(operand1).to_string();
+		std::string expected = std::bitset<16>(operand1).to_string();
 		if (ar1.getSize() < 2) {
-			ref = ref.substr(8,8);
+			expected = expected.substr(8,8);
 		}
 
-		REQUIRE(ar1.bin() == ref);
+		REQUIRE(ar1.bin() == expected);
 
 		++operand1;
 	}
@@ -540,10 +558,10 @@ TEST_CASE("Set") {
 
 	while(operand1 <= 1000) {
 		ar1.set(std::to_string(operand1+1));
-		arithmetic ref(std::to_string(operand1+1));
+		arithmetic expected(std::to_string(operand1+1));
 
-		REQUIRE(ar1.str() == ref.str());
-		REQUIRE(ar1.sign() == ref.sign());
+		REQUIRE(ar1.str() == expected.str());
+		REQUIRE(ar1.sign() == expected.sign());
 		++operand1;
 	}
 

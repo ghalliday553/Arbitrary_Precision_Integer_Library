@@ -851,7 +851,7 @@ arithmetic arithmetic::operator%(const arithmetic &in) const {
 /*
  * Left shift assignment
  *
- * The modified arithmetic object size will be the minimum needed to represent the modulus result.
+ * The modified arithmetic object size will be the minimum needed to represent the shift result.
  */
 arithmetic& arithmetic::operator<<=(arithmetic shiftAmount) {
 	for(; !(!shiftAmount); --shiftAmount) {
@@ -863,7 +863,7 @@ arithmetic& arithmetic::operator<<=(arithmetic shiftAmount) {
 /*
  * Left shift
  *
- * The returned arithmetic object size will be the minimum needed to represent the division result.
+ * The returned arithmetic object size will be the minimum needed to represent the shift result.
  */  
 arithmetic arithmetic::operator<<(arithmetic shiftAmount) const {
 	arithmetic temp = *this;
@@ -877,6 +877,7 @@ arithmetic arithmetic::operator<<(arithmetic shiftAmount) const {
  * Right shift
  * 
  * The returned object will be equivalent to a right shift operation on a two's-compliment system.
+ * The returned arithmetic object size will be the minimum needed to represent the shift result.
  */
 arithmetic arithmetic::operator>>(arithmetic shiftAmount) const {
 	arithmetic temp = *this;
@@ -901,6 +902,7 @@ arithmetic arithmetic::operator>>(arithmetic shiftAmount) const {
  * Right shift assignment
  * 
  * The modified object will be equivalent to a right shift operation on a two's-compliment system.
+ * The modified arithmetic object size will be the minimum needed to represent the result.
  */
 arithmetic& arithmetic::operator>>=(arithmetic shiftAmount) {
 	bool remainderFlag = false;
@@ -1071,8 +1073,9 @@ bool arithmetic::operator&&(const arithmetic &in) const {
 /*
  * Bitwise NOT
  *
- * Returns an arithemtic object with the same sign and every *this magnitude bit inverted.
+ * Returns an arithemtic object with every magnitude bit inverted.
  * The sign of *this will remain unchanged.
+ * The returned arithmetic object size will be the minimum needed to represent the result.
  */
 arithmetic arithmetic::operator~() const {
 	arithmetic ret = *this;
@@ -1080,6 +1083,7 @@ arithmetic arithmetic::operator~() const {
 		unsigned char temp = this->buf[i];
 		ret.buf[i] = ~temp;
 	}
+	ret.shrink();
 	return ret;
 }
 
@@ -1088,7 +1092,7 @@ arithmetic arithmetic::operator~() const {
  *
  * Returns an arithemtic object corresponding to the bitwise AND between the magnitudes of *this and in.
  * The returned object sign will be equivalent to *this.
- * The returned object size will be the larger of either *this or in.
+ * The returned arithmetic object size will be the minimum needed to represent the result.
  */
 arithmetic arithmetic::operator&(const arithmetic &in) const {
 	arithmetic tempIn = in;
@@ -1103,6 +1107,8 @@ arithmetic arithmetic::operator&(const arithmetic &in) const {
 	for (size_t i = 0; i < tempSelf.getSize(); ++i) {
 		tempSelf.buf[i] &= tempIn.buf[i];
 	}
+
+	tempSelf.shrink();
 	return tempSelf;
 }
 
@@ -1111,7 +1117,7 @@ arithmetic arithmetic::operator&(const arithmetic &in) const {
  *
  * Sets *this to the bitwise AND between the magnitdues of *this and in.
  * The sign of *this will remain unchanged.
- * The modified object size will be the larger of either *this or in.
+ * The modified arithmetic object size will be the minimum needed to represent the result.
  */
 arithmetic& arithmetic::operator&=(const arithmetic &in) {
 	arithmetic tempIn = in;
@@ -1125,6 +1131,8 @@ arithmetic& arithmetic::operator&=(const arithmetic &in) {
 	for (size_t i = 0; i < this->getSize(); ++i) {
 		this->buf[i] &= tempIn.buf[i];
 	}
+
+	shrink();
 	return *this;
 }
 
@@ -1134,7 +1142,7 @@ arithmetic& arithmetic::operator&=(const arithmetic &in) {
  *
  * Returns an arithemtic object corresponding to the bitwise OR between the magnitudes of *this and in.
  * The returned object sign will be equivalent to *this.
- * The returned object size will be the larger of either *this or in.
+ * The returned arithmetic object size will be the minimum needed to represent the result.
  */
 arithmetic arithmetic::operator|(const arithmetic &in) const {
 	arithmetic tempIn = in;
@@ -1149,6 +1157,8 @@ arithmetic arithmetic::operator|(const arithmetic &in) const {
 	for (size_t i = 0; i < tempSelf.getSize(); ++i) {
 		tempSelf.buf[i] |= tempIn.buf[i];
 	}
+
+	tempSelf.shrink();
 	return tempSelf;
 }
 
@@ -1157,7 +1167,7 @@ arithmetic arithmetic::operator|(const arithmetic &in) const {
  *
  * Sets *this to the bitwise OR between the magnitdues of *this and in.
  * The sign of *this will remain unchanged.
- * The modified object size will be the larger of either *this or in.
+ * The modified arithmetic object size will be the minimum needed to represent the result.
  */
 arithmetic& arithmetic::operator|=(const arithmetic &in) {
 	arithmetic tempIn = in;
@@ -1171,6 +1181,8 @@ arithmetic& arithmetic::operator|=(const arithmetic &in) {
 	for (size_t i = 0; i < this->getSize(); ++i) {
 		this->buf[i] |= tempIn.buf[i];
 	}
+
+	shrink();
 	return *this;
 }
 

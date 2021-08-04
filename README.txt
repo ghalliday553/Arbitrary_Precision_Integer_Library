@@ -45,8 +45,11 @@ Usage of any unsupported operators or using the incorrect number of operands wil
 "INVALID OPERATION" message.
 
 Notes:
-- All bitwise operations will be equivalent to that of a two's-compliment system.
+- All shift operations will be equivalent to that of a two's-compliment system.
 - All logical operators will produce either a value of "1" or "0".
+- The sign of all bitwise operations will be determined from the first operand.
+- Division by 0 is defined as 0.
+- Modulus by 0 is defined as the dividend.
 
 
 
