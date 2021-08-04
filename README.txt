@@ -2,7 +2,7 @@
 Arbitrary-Precision Integer Calculator
 --------------------------------------
 
-To demonstrate the use of the developed arbitrary-precision integer library, a reverse-polish calculator has been provided.
+To demonstrate the use of the developed arbitrary-precision integer library, a reverse polish calculator has been provided.
 
 Some library functions are not applicable to a calculator, and therefore have not been included within the calculator's list of supported operations. These commands includes:
 - Pre increment/decrement
@@ -36,8 +36,7 @@ The calculator will compute the first intermediate result of <operand_1> and <op
 
 INPUT:
 
-All operands must be a string of decimal numbers, optionally preceded by a negative sign. Usage of non-decimal numbers
-will cause the program to exit with an "INVALID OPERATION" message.
+All operands must be a string of decimal numbers, optionally preceded by a negative sign. Usage of non-decimal numbers will cause the program to exit with an "INVALID OPERATION" message.
 
 A list of supported operators is as follows:
 {"+", "++", "-", "--", "*", "/", "%", "^", "<<", ">>", "&", "|", "&&", "||", ">", ">=", "<", "<=", "==", "!=", "~", "!"'}
@@ -46,7 +45,7 @@ Usage of any unsupported operators or using the incorrect number of operands wil
 "INVALID OPERATION" message.
 
 Notes:
-- All bitwise operations will be equivalent to that of a twos-compliment system.
+- All bitwise operations will be equivalent to that of a two's-compliment system.
 - All logical operators will produce either a value of "1" or "0".
 
 
