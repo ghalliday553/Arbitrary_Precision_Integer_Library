@@ -265,7 +265,7 @@ runComp("1 1 +++", "INVALID OPERATION")
 runComp("1 1 + 1 $", "INVALID OPERATION")
 runComp("1 1 + 1 +++", "INVALID OPERATION")
 
-print("\nsanitization\n")
+print("\nsanitization:\n")
 runComp("0001 1 +", "2")
 
 
